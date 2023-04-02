@@ -59,7 +59,11 @@ class Loss(nn.modules.loss._Loss):
         device = torch.device('cpu' if args.cpu else 'cuda')
         self.loss_module.to(device)
         if args.precision == 'half': self.loss_module.half()
-        if not args.cpu and args.n_GPUs > 1:
+        # if not args.cpu and args.n_GPUs > 1:
+        #     self.loss_module = nn.DataParallel(
+        #         self.loss_module, range(args.n_GPUs)
+        #     )
+        if not args.cpu and args.n_GPUs > 0:
             self.loss_module = nn.DataParallel(
                 self.loss_module, range(args.n_GPUs)
             )
@@ -84,9 +88,12 @@ class Loss(nn.modules.loss._Loss):
         return loss_sum
 
     def step(self):
-        for l in self.get_loss_module():
-            if hasattr(l, 'scheduler'):
-                l.scheduler.step()
+        # for l in self.get_loss_module():
+        #     if hasattr(l, 'scheduler'):
+        #         l.scheduler.step()
+        l = self.get_loss_module()
+        if hasattr(l, 'scheduler'):
+            l.scheduler.step()
 
     def start_log(self):
         self.log = torch.cat((self.log, torch.zeros(1, len(self.loss))))

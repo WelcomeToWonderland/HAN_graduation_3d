@@ -15,6 +15,7 @@ import imageio
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lrs
+from torch.utils.tensorboard import SummaryWriter
 
 class timer():
     def __init__(self):
@@ -41,18 +42,26 @@ class timer():
     def reset(self):
         self.acc = 0
 
+
 class checkpoint():
     def __init__(self, args):
         self.args = args
         self.ok = True
+        # log：psnr_log.pt
         self.log = torch.Tensor()
         now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
 
+        # 加载checkpoint
+        # load：加载load中的数据，继续上一次训练
+        # dir：某次实验的文件根目录
+        # log：psnr_log.pt
         if not args.load:
+            # 新的实验，建立对应实验根目录
             if not args.save:
                 args.save = now
             self.dir = os.path.join('..', 'experiment', args.save)
         else:
+            # 加载已存在实验数据，加载对应实验根目录
             self.dir = os.path.join('..', 'experiment', args.load)
             if os.path.exists(self.dir):
                 self.log = torch.load(self.get_path('psnr_log.pt'))
@@ -60,41 +69,63 @@ class checkpoint():
             else:
                 args.load = ''
 
+        # reset：重置实验，删除实验根目录
         if args.reset:
             os.system('rm -rf ' + self.dir)
             args.load = ''
 
+        # 建立dir，如果dir没有建立
         os.makedirs(self.dir, exist_ok=True)
+        # 建立实验model文件夹
         os.makedirs(self.get_path('model'), exist_ok=True)
+        # 建立数据集sr重建结果输出文件夹
         for d in args.data_test:
             os.makedirs(self.get_path('results-{}'.format(d)), exist_ok=True)
+        # 建立tensorboard文件夹与对应writer
+        os.makedirs(self.get_path('tblog'), exist_ok=True)
+        self.writer = SummaryWriter(log_dir=self.get_path('tblog'))
 
-        open_type = 'a' if os.path.exists(self.get_path('log.txt'))else 'w'
+        # log_file，加载log.txt：model结构
+        # w：打开文件，具有写权限
+        # X：创建文件，具有写权限
+        open_type = 'a' if os.path.exists(self.get_path('log.txt'))else 'x'
         self.log_file = open(self.get_path('log.txt'), open_type)
+        # 加载config.txt：args参数
         with open(self.get_path('config.txt'), open_type) as f:
             f.write(now + '\n\n')
             for arg in vars(args):
                 f.write('{}: {}\n'.format(arg, getattr(args, arg)))
             f.write('\n')
 
+        # 线程数（background函数中将使用线程）
         self.n_processes = 8
 
     def get_path(self, *subdir):
+        '''
+        将subdir元组中的参数，与项目根目录dir拼接，并返回
+        :param subdir:
+        :return:
+        '''
         return os.path.join(self.dir, *subdir)
 
     def save(self, trainer, epoch, is_best=False):
         trainer.model.save(self.get_path('model'), epoch, is_best=is_best)
         trainer.loss.save(self.dir)
-        #trainer.loss.plot_loss(self.dir, epoch)
 
-        #self.plot_psnr(epoch)
+        # 原注释语句
+        trainer.loss.plot_loss(self.dir, epoch)
+        self.plot_psnr(epoch)
+
         trainer.optimizer.save(self.dir)
         torch.save(self.log, self.get_path('psnr_log.pt'))
 
     def add_log(self, log):
+        # 拼接log（psnr）：将传入的log与ckp中log拼接
+        # log(psnr)最终由skp.save函数保存
         self.log = torch.cat([self.log, log])
 
     def write_log(self, log, refresh=False):
+        # 往log.txt中写入日志
         print(log)
         self.log_file.write(log + '\n')
         if refresh:
@@ -132,7 +163,8 @@ class checkpoint():
                     filename, tensor = queue.get()
                     if filename is None: break
                     imageio.imwrite(filename, tensor.numpy())
-        
+
+        # 创建多进程
         self.process = [
             Process(target=bg_target, args=(self.queue,)) \
             for _ in range(self.n_processes)
@@ -146,6 +178,7 @@ class checkpoint():
         for p in self.process: p.join()
 
     def save_results(self, dataset, filename, save_list, scale):
+        # 保存sr重建图片
         if self.args.save_results:
             filename = self.get_path(
                 'results-{}'.format(dataset.dataset.name),
@@ -158,8 +191,19 @@ class checkpoint():
                 tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
                 self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
 
+    def save_results_dat(self, dataset, sr_dat, scale):
+        if self.args.save_results:
+            filename = self.get_path(
+                'results-{}'.format(dataset.dataset.name),
+                '{}_x{}_SR.DAT'.format('MergedPhantom', scale)
+            )
+            sr_dat.tofile(filename)
+
+
 def quantize(img, rgb_range):
     pixel_range = 255 / rgb_range
+    # clamp（l, r）：将变量限制在l~r之间
+    # round：四舍五入
     return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
 
 def calc_psnr(sr, hr, scale, rgb_range, dataset=None):

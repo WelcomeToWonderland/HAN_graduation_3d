@@ -62,7 +62,14 @@
 > #test
 > python main.py --template HAN --data_test Set5+Set14+B100+Urban100+Manga109 --data_range 801-900 --scale 2 --pre_train ../experiment/HAN/HAN_BIX2.pt --test_only --save HANx2_test --save_results
 > ```
->
+> ### my command
+> ```python
+> #HAN BI model (x2) that is removed meanshift layer 
+> 
+> python main.py --template HAN --shift_mean False --save HANx2_train_NoMeanShift --scale 2 --reset --save_results --patch_size 96 --pre_train ../experiment/model/RCAN_BIX2.pt
+> 
+> ```
+> 
 > All the models (BIX2/3/4/8, BDX3) can be downloaded from [GoogleDrive](https://drive.google.com/drive/folders/17cLcPCDLuBV5_5-ngd0vXIDp6rebIMG1).
 >
 > The whole test pipeline 
@@ -85,3 +92,35 @@
 >
 > This code is built on [RCAN](https://github.com/yulunzhang/RCAN). We thank the authors for sharing their codes of RCAN  [PyTorch version](https://github.com/yulunzhang/RCAN).
 
+测试脚本
+
+main-test-oabreast
+
+--test_only
+--save
+HANx2_test_oabreast_noshiftmean
+--save_results
+--template
+HAN
+--pre_train
+../experiment/HAN/HAN_BIX2.pt
+--scale
+2
+--shift_mean
+--dat
+--nx
+616
+--ny
+484
+--nz
+719
+--dir_data
+/root/autodl-tmp/dataset/OABreast/
+--data_test
+Neg_07_Left+Neg_35_Left+Neg_47_Left
+--data_range
+801-900
+--rgb_range
+5
+--n_colors
+1

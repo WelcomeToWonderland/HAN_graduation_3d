@@ -25,8 +25,10 @@ def get_patch(*args, patch_size=96, scale=2, multi=False, input_large=False):
         tx, ty = ix, iy
 
     ret = [
-        args[0][iy:iy + ip, ix:ix + ip, :],
-        *[a[ty:ty + tp, tx:tx + tp, :] for a in args[1:]]
+        # args[0][iy:iy + ip, ix:ix + ip, :],
+        # *[a[ty:ty + tp, tx:tx + tp, :] for a in args[1:]]
+        args[0][iy:iy + ip, ix:ix + ip],
+        *[a[ty:ty + tp, tx:tx + tp] for a in args[1:]]
     ]
 
     return ret

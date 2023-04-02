@@ -1,5 +1,5 @@
 import os
-from data import srdata
+import srdata
 
 class DIV2K(srdata.SRData):
     def __init__(self, args, name='DIV2K', train=True, benchmark=False):
@@ -25,10 +25,15 @@ class DIV2K(srdata.SRData):
         return names_hr, names_lr
 
     def _set_filesystem(self, dir_data):
-        super(DIV2K, self)._set_filesystem(dir_data)
+        # super(DIV2K, self)._set_filesystem(dir_data)
+        # self.apath = dir_data
+        # self.dir_hr = os.path.join(self.apath, 'TrainHR')
+        # self.dir_lr = os.path.join(self.apath, 'TrainLR')
+        # #self.dir_lr = os.path.join(self.apath, 'dataset/DIV2K_train_HR')
+        # if self.input_large: self.dir_lr += 'L'
+
         self.apath = dir_data
-        self.dir_hr = os.path.join(self.apath, 'TrainHR')
-        self.dir_lr = os.path.join(self.apath, 'TrainLR')
-        #self.dir_lr = os.path.join(self.apath, 'dataset/DIV2K_train_HR')
-        if self.input_large: self.dir_lr += 'L'
+        scale_dir = f'X{self.scale[0]}'
+        self.dir_lr = os.path.join(dir_data, self.name, 'DIV2K_train_LR_bicubic',scale_dir)
+        self.dir_hr = os.path.join(dir_data, self.name, 'DIV2K_train_HR')
 

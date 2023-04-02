@@ -17,12 +17,21 @@ class Data:
     def __init__(self, args):
         self.loader_train = None
         if not args.test_only:
+            # 按照数据集名称，加载对应py文件，针对性建立dataset
+            # 设立不同数据集对应py文件：不同数据集的文件夹结构不同
             datasets = []
             for d in args.data_train:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
-                m = import_module('data.' + module_name.lower())
-                datasets.append(getattr(m, module_name)(args, name=d))
+                if module_name in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left', 'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
+                    m = import_module('data.oabreast_train')
+                else:
+                    m = import_module('data.' + module_name.lower())
+                datasets.append(getattr(m, 'OABreast')(args, name=d))
+                # datasets.append(getattr(m, module_name)(args, name=d))
 
+
+
+            # 为dataset，建立dataloader
             self.loader_train = dataloader.DataLoader(
                 MyConcatDataset(datasets),
                 batch_size=args.batch_size,
@@ -36,6 +45,10 @@ class Data:
             if d in ['Val20', 'Set20', 'Set5', 'Set14', 'B100', 'Urban100','Manga109']:
                 m = import_module('data.benchmark')
                 testset = getattr(m, 'Benchmark')(args, train=False, name=d)
+            # oabreast修改
+            elif d in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left', 'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
+                m = import_module('data.oabreast_test')
+                testset = getattr(m, 'OABreast')(args, train=False, name=d)
             else:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
                 m = import_module('data.' + module_name.lower())
