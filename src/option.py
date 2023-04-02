@@ -13,22 +13,38 @@ parser.add_argument('--n_threads', type=int, default=1,
                     help='number of threads for data loading')
 parser.add_argument('--cpu', action='store_true',
                     help='use cpu only')
-parser.add_argument('--n_GPUs', type=int, default=2,
+parser.add_argument('--n_GPUs', type=int, default=1,
                     help='number of GPUs')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed')
 
 # Data specifications
+# 我的添加：dat文件
+parser.add_argument('--dat', action='store_true')
+parser.add_argument('--nx_train', type=int, help='3 dimention of hr of train')
+parser.add_argument('--ny_train', type=int)
+parser.add_argument('--nz_train', type=int)
+parser.add_argument('--nx_test', type=int, help='3 dimention of hr of test')
+parser.add_argument('--ny_test', type=int)
+parser.add_argument('--nz_test', type=int)
+# 数据集根目录
 parser.add_argument('--dir_data', type=str, default='/media/zrh/备份/AIM/X4',
                     help='dataset directory')
 parser.add_argument('--dir_demo', type=str, default='../test',
                     help='demo image directory')
+# 数据集名称
 parser.add_argument('--data_train', type=str, default='DIV2K',
                     help='train dataset name')
 parser.add_argument('--data_test', type=str, default='Set20',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-18000/18001-18999',
                     help='train/test data range')
+"""
+srdata._load_file()
+决定以什么样的方式读取文件
+img ： 
+sep ： 序列化与反序列化
+"""
 parser.add_argument('--ext', type=str, default='sep',
                     help='dataset file extension')
 parser.add_argument('--scale', type=str, default='4',
@@ -47,7 +63,6 @@ parser.add_argument('--no_augment', action='store_true',
 # Model specifications
 parser.add_argument('--model', default='MatrixModel',
                     help='model name')
-
 parser.add_argument('--act', type=str, default='relu',
                     help='activation function')
 parser.add_argument('--pre_train', type=str, default='',
@@ -63,13 +78,14 @@ parser.add_argument('--block', type=str, default='BASIC',
                     help='type of residual blocks')
 parser.add_argument('--res_scale', type=float, default=1,
                     help='residual scaling')
-parser.add_argument('--shift_mean', default=True,
-                    help='subtract pixel mean from the input')
+parser.add_argument('--shift_mean', action='store_true',
+                    help='subtract pixel mean from the input, Ture means no shift_mean')
 parser.add_argument('--dilation', action='store_true',
                     help='use dilated convolution')
 parser.add_argument('--precision', type=str, default='single',
                     choices=('single', 'half'),
                     help='FP precision for test (single | half)')
+
 
 # Option for Residual dense network (RDN)
 parser.add_argument('--G0', type=int, default=64,
@@ -124,17 +140,27 @@ parser.add_argument('--weight_decay', type=float, default=0,
 parser.add_argument('--gclip', type=float, default=0,
                     help='gradient clipping threshold (0 = no clipping)')
 
-# Loss specifications
+# Loss specification
 parser.add_argument('--loss', type=str, default='1*MSE',
                     help='loss function configuration')
 parser.add_argument('--skip_threshold', type=float, default='1e8',
                     help='skipping batch that has large error')
 
 # Log specifications
-parser.add_argument('--save', type=str, default='test',
+# parser.add_argument('--save', type=str, default='test',
+#                     help='file name to save')
+parser.add_argument('--save', type=str, default='',
+                    help='file name to save')
+parser.add_argument('--save_suffix', type=str, default='',
                     help='file name to save')
 parser.add_argument('--load', type=str, default='',
                     help='file name to load')
+"""
+在modle文件夹的，init.py中的load函数中使用
+-1 : latest_modle.pt
+0 : pretrain
+else : model_~.pt 区别于resume=-1
+"""
 parser.add_argument('--resume', type=int, default=0,
                     help='resume from specific checkpoint')
 parser.add_argument('--save_models', action='store_true',
@@ -156,6 +182,7 @@ args.data_test = args.data_test.split('+')
 if args.epochs == 0:
     args.epochs = 1e8
 
+# 将输入的字符串True，转化为bool值True
 for arg in vars(args):
     if vars(args)[arg] == 'True':
         vars(args)[arg] = True

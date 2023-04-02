@@ -1,4 +1,5 @@
 from model import common
+# import common
 import torch
 import torch.nn as nn
 import pdb
@@ -143,14 +144,29 @@ class HAN(nn.Module):
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
         kernel_size = 3
-        reduction = args.reduction 
+        """
+        rcan : reduction控制特征图的减少
+        """
+        reduction = args.reduction
+        """
+        scale是定量
+        模型最后的上采样模型是确定的
+        ？那怎么做到同一模型，实现不同scale的提升
+        """
         scale = args.scale[0]
         act = nn.ReLU(True)
-        
+
+
+        """
+        修改之后，HAN模型默认不添加shift_mean模块
+        """
+        self.shift_mean = args.shift_mean
         # RGB mean for DIV2K
         rgb_mean = (0.4488, 0.4371, 0.4040)
         rgb_std = (1.0, 1.0, 1.0)
         self.sub_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std)
+
+
         
         # define head module
         modules_head = [conv(args.n_colors, n_feats, kernel_size)]
@@ -179,7 +195,10 @@ class HAN(nn.Module):
         self.tail = nn.Sequential(*modules_tail)
 
     def forward(self, x):
-        x = self.sub_mean(x)
+
+        if self.shift_mean:
+            x = self.sub_mean(x)
+
         x = self.head(x)
         res = x
         #pdb.set_trace()
@@ -205,7 +224,9 @@ class HAN(nn.Module):
         #res = self.csa(res)
 
         x = self.tail(res)
-        x = self.add_mean(x)
+
+        if self.shift_mean:
+            x = self.add_mean(x)
 
         return x 
 

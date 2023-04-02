@@ -12,15 +12,18 @@ import torch.utils.data as data
 import pdb
 #import pdb
 
+# dataset源文件
 class SRData(data.Dataset):
+    # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
+        self.input_large = (args.model == 'VDSR')
+
         self.args = args
         self.name = name
         self.train = train
         self.split = 'train' if train else 'test'
         self.do_eval = True
         self.benchmark = benchmark
-        self.input_large = (args.model == 'VDSR')
         self.scale = args.scale
         self.idx_scale = 0
         
@@ -58,7 +61,8 @@ class SRData(data.Dataset):
                     b = l.replace(self.apath, path_bin)
                     b = b.replace(self.ext[1], '.pt')
                     self.images_lr[i].append(b)
-                    self._check_and_load(args.ext, l, b, verbose=True) 
+                    self._check_and_load(args.ext, l, b, verbose=True)
+
         if train:
             n_patches = args.batch_size * args.test_every
             n_images = len(args.data_train) * len(self.images_hr)
@@ -67,14 +71,20 @@ class SRData(data.Dataset):
             else:
                 self.repeat = max(n_patches // n_images, 1)
 
-    # Below functions as used to prepare images
     def _scan(self):
+        '''
+        扫描dataset文件夹，返回图片路径列表（只是路径，并没有读取）
+        :return:
+        '''
         names_hr = sorted(
             glob.glob(os.path.join(self.dir_hr, '*' + self.ext[0]))
         )
+        """
+        为了lr与hr一一对应，直接根据hr文件名，生成对应scale的lr文件名
+        """
         names_lr = [[] for _ in self.scale]
         for f in names_hr:
-            filename,_ = os.path.splitext(os.path.basename(f))[0].split('_')
+            filename,_ = os.path.splitext( os.path.basename(f) )[0].split('_')
             for si, s in enumerate(self.scale):
                 names_lr[si].append(os.path.join(
                     self.dir_lr, 'X{}/{}{}{}'.format(
@@ -85,19 +95,21 @@ class SRData(data.Dataset):
         return names_hr, names_lr
 
     def _set_filesystem(self, dir_data):
+        '''
+        结合dir_data和数据集name，拼接成hr和lr文件夹路径
+        :param dir_data:
+        :return:
+        '''
         self.apath = os.path.join(dir_data, self.name)
         self.dir_hr = os.path.join(self.apath, 'HR')
         self.dir_lr = os.path.join(self.apath, 'LR_bicubic')
         if self.input_large: self.dir_lr += 'L'
+        """
+        hr后缀与lr后缀
+        """
         self.ext = ('.png', '.png')
 
-    def _check_and_load(self, ext, img, f, verbose=True):
-        if not os.path.isfile(f) or ext.find('reset') >= 0:
-            if verbose:
-                print('Making a binary: {}'.format(f))
-            with open(f, 'wb') as _f:
-                pickle.dump(imageio.imread(img), _f)
-
+    # 函数组-2
     def __getitem__(self, idx):
         lr, hr, filename = self._load_file(idx)
         pair = self.get_patch(lr, hr)
@@ -106,19 +118,12 @@ class SRData(data.Dataset):
 
         return pair_t[0], pair_t[1], filename
 
-    def __len__(self):
-        if self.train:
-            return len(self.images_hr) * self.repeat
-        else:
-            return len(self.images_hr)
-
-    def _get_index(self, idx):
-        if self.train:
-            return idx % len(self.images_hr)
-        else:
-            return idx
-
     def _load_file(self, idx):
+        '''
+        根据list中的路径，加载图片
+        :param idx:
+        :return:
+        '''
         idx = self._get_index(idx)
         f_hr = self.images_hr[idx]
         f_lr = self.images_lr[self.idx_scale][idx]
@@ -136,6 +141,27 @@ class SRData(data.Dataset):
                 lr = pickle.load(_f)
 
         return lr, hr, filename
+
+    def _get_index(self, idx):
+        if self.train:
+            return idx % len(self.images_hr)
+        else:
+            return idx
+
+    # 函数-3
+    def __len__(self):
+        if self.train:
+            return len(self.images_hr) * self.repeat
+        else:
+            return len(self.images_hr)
+
+    # 未分类函数
+    def _check_and_load(self, ext, img, f, verbose=True):
+        if not os.path.isfile(f) or ext.find('reset') >= 0:
+            if verbose:
+                print('Making a binary: {}'.format(f))
+            with open(f, 'wb') as _f:
+                pickle.dump(imageio.imread(img), _f)
 
     def get_patch(self, lr, hr):
         scale = self.scale[self.idx_scale]
