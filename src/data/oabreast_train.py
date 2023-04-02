@@ -162,10 +162,17 @@ class OABreast(data.Dataset):
 
     # 函数-3
     def __len__(se1f):
+
+        """
         if se1f.train:
             return np.shape(se1f.images_hr)[2] * se1f.repeat
         else:
             return np.shape(se1f.images_hr)[2]
+
+        不再使用args.every_test属性，对应sef.repeat属性
+        :return:
+        """
+        return np.shape(se1f.images_hr)[2]
 
     # 函数-4
     def set_scale(self, idx_scale):

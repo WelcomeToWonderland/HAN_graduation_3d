@@ -4,9 +4,10 @@ import argparse
 import os
 import datetime
 import torch
-import cv2
 
-path = r'D:\workspace\dataset\DIV2K\DIV2K_train_HR\0001.png'
-img = cv2.imread(path)
-print(img.dtype)
+
+temp = np.zeros((1000, 1000, 1000))
+print(f"dtype : {temp.dtype}")
+temp = cv2.resize(temp, (2000, 2000), interpolation = cv2.INTER_CUBIC)
+print(temp.shape)
 

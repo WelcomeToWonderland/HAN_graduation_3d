@@ -45,8 +45,6 @@ class Benchmark(srdata.SRData):
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, self.name)
         self.all_files = glob.glob(os.path.join(self.apath, 'HR', "*.png"))
-        #self.dir_lr = os.path.join(dir_data, self.name, 'Test/3')
-        #self.dir_hr = os.path.join(dir_data, self.name, 'Test/3')
         scale_dir = f'X{self.scale[0]}'
         self.dir_lr = os.path.join(dir_data, self.name, 'LR',scale_dir)
         self.dir_hr = os.path.join(dir_data, self.name, 'HR')

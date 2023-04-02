@@ -153,7 +153,7 @@ class Loss(nn.modules.loss._Loss):
             plt.ylabel('Loss')
             plt.grid(True)
             # 以pdf的形式形式保存图片
-            plt.savefig(os.path.join(apath, 'loss_{}.pdf'.format(l['type'])))
+            plt.savefig(os.path.join(apath, 'loss_{}.png'.format(l['type'])))
             plt.close(fig)
 
     # 函数组5

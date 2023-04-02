@@ -150,10 +150,15 @@ class SRData(data.Dataset):
 
     # 函数-3
     def __len__(self):
+        """
         if self.train:
             return len(self.images_hr) * self.repeat
         else:
             return len(self.images_hr)
+
+        :return:
+        """
+        return len(self.images_hr)
 
     # 未分类函数
     def _check_and_load(self, ext, img, f, verbose=True):

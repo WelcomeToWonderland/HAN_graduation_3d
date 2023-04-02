@@ -96,6 +96,7 @@ class Trainer():
             if (batch + 1) % self.args.print_every == 0:
                 self.ckp.write_log('[{}/{}]\t{}\t{:.1f}+{:.1f}s'.format(
                     (batch + 1) * self.args.batch_size,
+                    # 出现错误，应该是三维像素矩阵的第三维，而不是所有像素点的数目
                     len(self.loader_train.dataset),
                     self.loss.display_loss(batch),
                     timer_model.release(),
@@ -123,14 +124,14 @@ class Trainer():
         # test中才有 保存 操作
         if self.args.save_results: self.ckp.begin_background()
 
-
         # 获取dataset
         for idx_data, d in enumerate(self.loader_test):
             for idx_scale, scale in enumerate(self.scale):
                 d.dataset.set_scale(idx_scale)
 
                 # oabreast数据库使用dat存储
-                sr_dat = np.zeros((self.args.nx_test, self.args.ny_test, self.args.nz_test), dtype=np.uint8)
+                if self.args.dat:
+                    sr_dat = np.zeros((self.args.nx_test, self.args.ny_test, self.args.nz_test), dtype=np.uint8)
 
                 # psnr、ssim数据记录
                 calc_psnr_mean = 0
@@ -142,13 +143,8 @@ class Trainer():
                 # 从dataset中，获取图像
                 for lr, hr, filename in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
-                    # print(f"\nlr:{np.shape(lr)}")
-                    # print(f"hr:{np.shape(hr)}")
                     sr = self.model(lr, idx_scale)
-                    # print(f"sr:{np.shape(sr)}")
-                    # print(f"sr:{np.shape(sr.cpu().numpy())}")
                     sr = utility.quantize(sr, self.args.rgb_range)
-
 
                     if self.args.save_results:
                         if self.args.dat:
@@ -211,8 +207,6 @@ class Trainer():
                         best[1][idx_data, idx_scale]
                     )
                 )
-
-
 
         self.ckp.write_log('Forward: {:.2f}s\n'.format(timer_test.toc()))
         self.ckp.write_log('Saving...')

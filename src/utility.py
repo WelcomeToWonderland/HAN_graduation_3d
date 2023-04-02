@@ -60,8 +60,9 @@ class checkpoint():
             # 新的实验，建立对应实验根目录
             if not args.save:
                 args.save = now
-            # 我的修改，时间now添加后缀save_suffix
-            args.save = args.save + args.save_suffix
+                if args.save:
+                    # 我的修改，时间now添加后缀save_suffix
+                    args.save = args.save + "_" + args.save_suffix
             self.dir = os.path.join('..', 'experiment', args.save)
         else:
             # 加载已存在实验数据，加载对应实验根目录
@@ -151,7 +152,7 @@ class checkpoint():
             plt.xlabel('Epochs')
             plt.ylabel('PSNR')
             plt.grid(True)
-            plt.savefig(self.get_path('test_{}.pdf'.format(d)))
+            plt.savefig(self.get_path('test_{}.png'.format(d)))
             plt.close(fig)
 
     # 函数组3
@@ -236,7 +237,7 @@ class checkpoint():
         if self.args.save_results:
             filename = self.get_path(
                 'results-{}'.format(dataset.dataset.name),
-                '{}_x{}_SR.DAT'.format('MergedPhantom', scale)
+                '{}_x{}_SR.DAT'.format(self.args.data_test, scale)
             )
             sr_dat.tofile(filename)
 
