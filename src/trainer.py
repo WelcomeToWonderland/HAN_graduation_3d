@@ -37,29 +37,50 @@ class Trainer():
         epoch = self.optimizer.get_last_epoch() + 1
         #pdb.set_trace
         lr = self.optimizer.get_lr()
-
-        # 往log.txt中写入内容
+        """
+        往log.txt中写入内容
+        """
         self.ckp.write_log(
             '[Epoch {}]\tLearning rate: {:.2e}'.format(epoch, Decimal(lr))
         )
         self.loss.start_log()
+        """
+        开启train模式
+        """
         self.model.train()
-
         timer_data, timer_model = utility.timer(), utility.timer()
-        # TEMP
+        """
+        TEMP
+        
+        如何实现多scale处理，还是不清楚
+        """
         self.loader_train.dataset.set_scale(0)
-        # 一个epoch
-        # 没有 保存 操作，不使用filename
+
+        """
+        enumerate(self.loader_train)
+        ？调用dataset的getitem()
+        """
         for batch, (lr, hr, _,) in enumerate(self.loader_train):
             lr, hr = self.prepare(lr, hr)
             timer_data.hold()
             timer_model.tic()
 
             self.optimizer.zero_grad()
+            """
+            0 : idx_scale
+            HAN模型没有set_scale函数，没有用
+            """
             sr = self.model(lr, 0)
-            # 计算loss
             loss = self.loss(sr, hr)
+            """
+            反向传播
+            计算损失函数对于模型参数的梯度
+            """
             loss.backward()
+            """
+            梯度剪裁，防止梯度爆炸
+            将梯度限制在阈值self.args.gclip范围内
+            """
             if self.args.gclip > 0:
                 utils.clip_grad_value_(
                     self.model.parameters(),
@@ -69,6 +90,9 @@ class Trainer():
 
             timer_model.hold()
 
+            """
+            print_every(_batch)
+            """
             if (batch + 1) % self.args.print_every == 0:
                 self.ckp.write_log('[{}/{}]\t{}\t{:.1f}+{:.1f}s'.format(
                     (batch + 1) * self.args.batch_size,
@@ -128,7 +152,7 @@ class Trainer():
 
                     if self.args.save_results:
                         if self.args.dat:
-                            sr_dat[:, :, filename] = sr.cpu().numpy()
+                            sr_dat[:, :, filename] = sr.cpu().numpy()[0, 0, :, :]
                         else:
                             save_list = [sr]
                             if self.args.save_gt:
@@ -151,31 +175,25 @@ class Trainer():
                     num += 1
                     calc_psnr = utility.calc_psnr(sr, hr, scale, self.args.rgb_range, dataset=d)
                     calc_psnr_mean += calc_psnr
-                    # print(f"sr : {sr.shape}")
-                    # print(f"sr.cpu().numpy() : {sr.cpu().numpy().shape}")
-                    # print(f"sr.cpu().numpy()[0, 0, :, :] : {sr.cpu().numpy()[0, 0, :, :].shape}")
-                    # print(f"sr.cpu().numpy()[0, 0, :, :].astype(np.uint8).shape: {sr.cpu().numpy()[0, 0, :, :].astype(np.uint8).shape}")
-                    sr = sr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
-                    hr = hr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
-                    # print(sr.dtype)
-                    psnr = peak_signal_noise_ratio(hr, sr, data_range=5)
-                    print(f"psnr: {psnr}")
-                    psnr_mean += psnr
-                    ssim = structural_similarity(hr, sr, multichannel=False)
-                    print(f"ssim: {ssim}")
+                    # sr = sr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
+                    # hr = hr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
+                    # psnr = peak_signal_noise_ratio(hr, sr, data_range=5)
+                    # print(f"psnr: {psnr}")
+                    # psnr_mean += psnr
                     # ssim = structural_similarity(hr, sr)
-                    ssim_mean += ssim
-                    self.ckp.writer.add_scalar(r'calc_psnr', calc_psnr, (epoch+1)*len(d) + num)
-                    self.ckp.writer.add_scalar(r'psnr', psnr.item(), (epoch+1)*len(d) + num)
-                    self.ckp.writer.add_scalar(r'ssim', ssim.item(), (epoch+1)*len(d) + num)
+                    # print(f"ssim: {ssim}")
+                    # ssim_mean += ssim
+                    # self.ckp.writer.add_scalar(r'calc_psnr', calc_psnr, (epoch+1)*len(d) + num)
+                    # self.ckp.writer.add_scalar(r'psnr', psnr.item(), (epoch+1)*len(d) + num)
+                    # self.ckp.writer.add_scalar(r'ssim', ssim.item(), (epoch+1)*len(d) + num)
 
                 # tensorboard
                 calc_psnr_mean /= len(d)
-                psnr_mean /= len(d)
-                ssim_mean /= len(d)
+                # psnr_mean /= len(d)
+                # ssim_mean /= len(d)
                 self.ckp.writer.add_scalar(r'calc_psnr_mean', calc_psnr_mean, epoch + 1)
-                self.ckp.writer.add_scalar(r'psnr_mean', psnr_mean.item(), epoch + 1)
-                self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
+                # self.ckp.writer.add_scalar(r'psnr_mean', psnr_mean.item(), epoch + 1)
+                # self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
 
 
                 if self.args.save_results:
@@ -213,6 +231,12 @@ class Trainer():
         torch.set_grad_enabled(True)
 
     def prepare(self, *args):
+        """
+        将输入张量，改变精度，映射到计算设备上
+        以列表的形式返回所有输入张量的处理结果
+        :param args:
+        :return:
+        """
         device = torch.device('cpu' if self.args.cpu else 'cuda')
         def _prepare(tensor):
             if self.args.precision == 'half': tensor = tensor.half()

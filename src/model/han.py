@@ -144,12 +144,22 @@ class HAN(nn.Module):
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
         kernel_size = 3
-        reduction = args.reduction 
+        """
+        rcan : reduction控制特征图的减少
+        """
+        reduction = args.reduction
+        """
+        scale是定量
+        模型最后的上采样模型是确定的
+        ？那怎么做到同一模型，实现不同scale的提升
+        """
         scale = args.scale[0]
         act = nn.ReLU(True)
 
 
-        #我的修改
+        """
+        修改之后，HAN模型默认不添加shift_mean模块
+        """
         self.shift_mean = args.shift_mean
         # RGB mean for DIV2K
         rgb_mean = (0.4488, 0.4371, 0.4040)

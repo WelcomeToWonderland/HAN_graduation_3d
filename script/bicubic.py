@@ -17,7 +17,7 @@ parser.add_argument('--ny', type=int)
 parser.add_argument('--nz', type=int)
 args = parser.parse_args()
 
-def bicubic_img():
+def bd_img():
     hr_image_dir = args.hr_img_dir
     lr_image_dir = args.lr_img_dir
 
@@ -80,7 +80,61 @@ def bicubic_img():
                                    interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(os.path.join(lr_image_dir + "/X6", filename.split('.')[0] + 'x6' + ext), lr_img_6x)
 
-def bicubic_dat():
+def bd_dat():
+    hr_image_dir = args.hr_img_dir
+    lr_image_dir = args.lr_img_dir
+    nx = args.nx
+    ny = args.ny
+    nz = args.nz
+
+
+    print(args.hr_img_dir)
+    print(args.lr_img_dir)
+
+    # create LR image dirs
+    os.makedirs(lr_image_dir + "/X2", exist_ok=True)
+
+    supported_img_formats = (".DAT")
+
+    # Downsample HR images
+    for filename in os.listdir(hr_image_dir):
+
+        print(filename)
+
+        if not filename.endswith(supported_img_formats):
+            continue
+
+        name, ext = os.path.splitext(filename)
+
+        print(os.path.join(hr_image_dir, filename))
+
+        # Read HR image
+        hr_img = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
+        print(f"before shape:{np.shape(hr_img)}")
+        hr_img = hr_img.reshape(nx, ny, nz)
+
+
+
+        # Blur with Gaussian kernel of width sigma = 1
+        for z in range(nz):
+            item = hr_img[:, :, z]
+            item = cv2.GaussianBlur(item, (0, 0), 1, 1)
+            hr_img[:, :, z] = item
+
+        print(f"after shape:{np.shape(hr_img)}")
+
+        # cv2.GaussianBlur(hr_img, (0,0), 1, 1)   其中模糊核这里用的0。两个1分别表示x、y方向的标准差。 可以具体查看该函数的官方文档。
+        # Downsample image 2x
+        lr_image_2x = np.zeros((int(nx / 2), int(ny / 2), nz), dtype=np.uint8)
+        for z in range(nz):
+            item = hr_img[:, :, z]
+            item = cv2.resize(item, (0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+            lr_image_2x[:, :, z] = item
+
+        print(f"after resize shape:{np.shape(lr_image_2x)}")
+        lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
+
+def bi_dat():
     hr_image_dir = args.hr_img_dir
     lr_image_dir = args.lr_img_dir
     nx = args.nx
@@ -135,6 +189,5 @@ def bicubic_dat():
         lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
 
 
-
 if __name__ == '__main__':
-    bicubic_dat()
+    bi_dat()

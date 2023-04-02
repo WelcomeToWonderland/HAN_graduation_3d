@@ -8,13 +8,15 @@ import torch.utils.model_zoo
 os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
 
 class Model(nn.Module):
+    # 函数组1
     def __init__(self, args, ckp):
         super(Model, self).__init__()
         print('Making model...')
 
+        self.input_large = (args.model == 'VDSR')
+
         self.scale = args.scale
         self.idx_scale = 0
-        self.input_large = (args.model == 'VDSR')
         self.self_ensemble = args.self_ensemble
         self.chop = args.chop
         self.precision = args.precision
@@ -24,6 +26,11 @@ class Model(nn.Module):
         self.save_models = args.save_models
 
         module = import_module('model.' + args.model.lower())
+        """
+        Modle对象有model属性
+        Model对象有forword函数
+        Model.modle也有forword函数
+        """
         self.model = module.make_model(args).to(self.device)
         if args.precision == 'half':
             self.model.half()
@@ -34,41 +41,13 @@ class Model(nn.Module):
             resume=args.resume,
             cpu=args.cpu
         )
+        """
+        将self.model，输出到ckp.log_file，也就是log.txt
+        log.txt记录模型结构，和训练测试过程中产生的信息
+        
+        config.txt记录args
+        """
         print(self.model, file=ckp.log_file)
-
-    def forward(self, x, idx_scale):
-        self.idx_scale = idx_scale
-        if hasattr(self.model, 'set_scale'):
-            self.model.set_scale(idx_scale)
-
-        if self.training:
-            if self.n_GPUs > 1:
-                return P.data_parallel(self.model, x, range(self.n_GPUs))
-            else:
-                return self.model(x)
-        else:
-            if self.chop:
-                forward_function = self.forward_chop
-            else:
-                forward_function = self.model.forward
-
-            if self.self_ensemble:
-                return self.forward_x8(x, forward_function=forward_function)
-            else:
-                return forward_function(x)
-
-    def save(self, apath, epoch, is_best=False):
-        save_dirs = [os.path.join(apath, 'model_latest.pt')]
-
-        if is_best:
-            save_dirs.append(os.path.join(apath, 'model_best.pt'))
-        if self.save_models:
-            save_dirs.append(
-                os.path.join(apath, 'model_{}.pt'.format(epoch))
-            )
-
-        for s in save_dirs:
-            torch.save(self.model.state_dict(), s)
 
     def load(self, apath, pre_train='', resume=-1, cpu=False):
         load_from = None
@@ -102,6 +81,48 @@ class Model(nn.Module):
 
         if load_from:
             self.model.load_state_dict(load_from, strict=False)
+
+    # 函数组2
+    def forward(self, x, idx_scale):
+        self.idx_scale = idx_scale
+        """
+        han模型没有set_scale函数
+        """
+        if hasattr(self.model, 'set_scale'):
+            self.model.set_scale(idx_scale)
+
+        """
+        self.training在这个文件中第一次出现
+        ？在调用处指明
+        """
+        if self.training:
+            if self.n_GPUs > 1:
+                """
+                多gpu处理
+                
+                loss模块中也有对应的多gpu处理
+                """
+                return P.data_parallel(self.model, x, range(self.n_GPUs))
+            else:
+                """
+                调用model.forward函数
+                """
+                return self.model(x)
+        else:
+            """
+            HAN　template　默认
+            chop = Ture
+            self_emsemble = Fasle
+            """
+            if self.chop:
+                forward_function = self.forward_chop
+            else:
+                forward_function = self.model.forward
+
+            if self.self_ensemble:
+                return self.forward_x8(x, forward_function=forward_function)
+            else:
+                return forward_function(x)
 
     def forward_chop(self, x, shave=10, min_size=160000):
         scale = self.scale[self.idx_scale]
@@ -190,3 +211,27 @@ class Model(nn.Module):
         if len(y) == 1: y = y[0]
 
         return y
+
+    # 函数组3
+    def save(self, apath, epoch, is_best=False):
+        """
+        checkpoint的save函数调用，统一保存各种信息
+        视情况，最多保存三种类型的模型参数文件
+        :param apath:
+        :param epoch:
+        :param is_best:
+        :return:
+        """
+        save_dirs = [os.path.join(apath, 'model_latest.pt')]
+
+        if is_best:
+            save_dirs.append(os.path.join(apath, 'model_best.pt'))
+        if self.save_models:
+            save_dirs.append(
+                os.path.join(apath, 'model_{}.pt'.format(epoch))
+            )
+
+        for s in save_dirs:
+            torch.save(self.model.state_dict(), s)
+
+

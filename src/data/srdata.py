@@ -16,13 +16,14 @@ import pdb
 class SRData(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
+        self.input_large = (args.model == 'VDSR')
+
         self.args = args
         self.name = name
         self.train = train
         self.split = 'train' if train else 'test'
         self.do_eval = True
         self.benchmark = benchmark
-        self.input_large = (args.model == 'VDSR')
         self.scale = args.scale
         self.idx_scale = 0
         
@@ -78,9 +79,12 @@ class SRData(data.Dataset):
         names_hr = sorted(
             glob.glob(os.path.join(self.dir_hr, '*' + self.ext[0]))
         )
+        """
+        为了lr与hr一一对应，直接根据hr文件名，生成对应scale的lr文件名
+        """
         names_lr = [[] for _ in self.scale]
         for f in names_hr:
-            filename,_ = os.path.splitext(os.path.basename(f))[0].split('_')
+            filename,_ = os.path.splitext( os.path.basename(f) )[0].split('_')
             for si, s in enumerate(self.scale):
                 names_lr[si].append(os.path.join(
                     self.dir_lr, 'X{}/{}{}{}'.format(
@@ -100,6 +104,9 @@ class SRData(data.Dataset):
         self.dir_hr = os.path.join(self.apath, 'HR')
         self.dir_lr = os.path.join(self.apath, 'LR_bicubic')
         if self.input_large: self.dir_lr += 'L'
+        """
+        hr后缀与lr后缀
+        """
         self.ext = ('.png', '.png')
 
     # 函数组-2

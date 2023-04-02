@@ -1,12 +1,20 @@
 import torch
-
 import utility
 import data
 import model
 import loss
 from option import args
 from trainer import Trainer
+import gc
 
+gc.collect()
+torch.cuda.empty_cache()
+
+
+"""
+行为：将args.seed设置为cpu和gpu的随机数种子
+目的：方便复现
+"""
 torch.manual_seed(args.seed)
 checkpoint = utility.checkpoint(args)
 

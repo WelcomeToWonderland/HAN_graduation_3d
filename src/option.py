@@ -39,6 +39,12 @@ parser.add_argument('--data_test', type=str, default='Set20',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-18000/18001-18999',
                     help='train/test data range')
+"""
+srdata._load_file()
+决定以什么样的方式读取文件
+img ： 
+sep ： 序列化与反序列化
+"""
 parser.add_argument('--ext', type=str, default='sep',
                     help='dataset file extension')
 parser.add_argument('--scale', type=str, default='4',
@@ -141,10 +147,20 @@ parser.add_argument('--skip_threshold', type=float, default='1e8',
                     help='skipping batch that has large error')
 
 # Log specifications
-parser.add_argument('--save', type=str, default='test',
+# parser.add_argument('--save', type=str, default='test',
+#                     help='file name to save')
+parser.add_argument('--save', type=str, default='',
+                    help='file name to save')
+parser.add_argument('--save_suffix', type=str, default='',
                     help='file name to save')
 parser.add_argument('--load', type=str, default='',
                     help='file name to load')
+"""
+在modle文件夹的，init.py中的load函数中使用
+-1 : latest_modle.pt
+0 : pretrain
+else : model_~.pt 区别于resume=-1
+"""
 parser.add_argument('--resume', type=int, default=0,
                     help='resume from specific checkpoint')
 parser.add_argument('--save_models', action='store_true',

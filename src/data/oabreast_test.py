@@ -7,6 +7,7 @@ import random
 class OABreast(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
+        print('Making dataset oabreast_test...')
         self.args = args
         self.name = name
         self.train = train
