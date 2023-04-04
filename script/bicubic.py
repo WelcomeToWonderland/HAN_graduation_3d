@@ -6,13 +6,13 @@ import numpy as np
 
 # parse args
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
-parser.add_argument("-k", "--keepdims", help="keep original image dimensions in downsampled images",
-                    action="store_true")
-parser.add_argument('--hr_img_dir', type=str, default=r'C:\Users\Administrator\Desktop\input',
+parser.add_argument('--dataset', type=str, default=r'',
+                    help='')
+parser.add_argument('--hr_img_dir', type=str, default=r'D:\workspace\dataset\OABreast\clipping\Neg_35_Left\HR',
                     help='path to high resolution image dir')
-parser.add_argument('--lr_img_dir', type=str, default=r'C:\Users\Administrator\Desktop\result',
+parser.add_argument('--lr_img_dir', type=str, default=r'D:\workspace\dataset\OABreast\clipping\Neg_35_Left\LR',
                     help='path to desired output dir for downsampled images')
-parser.add_argument('--sr_img_dir', type=str, default=r'C:\Users\Administrator\Desktop\result',
+parser.add_argument('--sr_img_dir', type=str, default=r'D:\workspace\dataset\OABreast\clipping\Neg_35_Left\SR',
                     help='path to desired output dir for upsampled images')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
@@ -141,6 +141,7 @@ def bi_dat_downsampling_x2():
     BI : 仅bicubic
     :return:
     """
+    print("\nbi_dat_downsampling_x2")
     hr_image_dir = args.hr_img_dir
     lr_image_dir = args.lr_img_dir
     nx = args.nx
@@ -168,35 +169,40 @@ def bi_dat_downsampling_x2():
         # Read HR image
         hr_img = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
         hr_img = hr_img.reshape(nx, ny, nz)
-        print(f"downsampling before : {hr_img.shape}")
+        print(f"downsample before : {hr_img.shape}")
         print(f"hr_size : {hr_img.size}")
-        print(f"hr_num_0 : {hr_img.size - np.count_nonzero(hr_img)}")
-        print(f"hr_max : {np.amax(hr_img)}")
-        hr_img = hr_img.astype(np.float32) / 5 * 255
-        print(f"transfer to float32")
-        print(f"hr_size : {hr_img.size}")
-        print(f"hr_num_0 : {hr_img.size - np.count_nonzero(hr_img)}")
-        print(f"hr_max : {np.amax(hr_img)}")
+        hist, bins = np.histogram(hr_img, bins=range(7))
+        densities, _ = np.histogram(hr_img, bins=range(7), density=True)
+        print(f"hist : {hist}")
+        print(f"densities : {densities}")
+        print(f"bins : {bins}")
+        hr_img = hr_img.astype(np.float32)
         # Downsample image 2x
         lr_image_2x = np.zeros((int(nx / 2), int(ny / 2), nz))
         for idx in range(nz):
             lr_image_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
             if(idx == nz -1):
+                print(f"downsampling")
                 print(f"idx = nz -1, size : {lr_image_2x[:, :, idx].size}")
                 print(f"idx = nz -1, num_0 : {lr_image_2x[:, :, idx].size - np.count_nonzero(lr_image_2x[:, :, idx])}")
                 print(f"idx = nz -1, max : {np.amax(lr_image_2x[:, :, idx])}")
-        print(f"downsampling after : {lr_image_2x.shape}")
+        print(f"downsample after : {lr_image_2x.shape}")
         print(f"before normalize")
         print(f"lr_size : {lr_image_2x.size}")
         print(f"lr_num_0 : {lr_image_2x.size - np.count_nonzero(lr_image_2x)}")
         print(f"lr_max : {np.amax(lr_image_2x)}")
-        lr_image_2x = cv2.normalize(lr_image_2x, dst=None, alpha=0, beta=255)
-        lr_image_2x = lr_image_2x * 5  / 255
-        lr_image_2x = np.round(lr_image_2x).astype(np.uint8)
+        # lr_image_2x = cv2.normalize(lr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+        lr_image_2x = lr_image_2x * 255 / 5
+        lr_image_2x = np.clip(lr_image_2x, 0, 255)
+        lr_image_2x = np.round(lr_image_2x) / 255 * 5
+        lr_image_2x = lr_image_2x.astype(np.uint8)
         print(f"after normalize")
-        print(f"lr_size : {lr_image_2x.size}")
-        print(f"lr_num_0 : {lr_image_2x.size - np.count_nonzero(lr_image_2x)}")
-        print(f"lr_max : {np.amax(lr_image_2x)}")
+        print(f"hr_size : {lr_image_2x.size}")
+        hist, bins = np.histogram(lr_image_2x, bins=range(7))
+        densities, _ = np.histogram(lr_image_2x, bins=range(7), density=True)
+        print(f"hist : {hist}")
+        print(f"densities : {densities}")
+        print(f"bins : {bins}")
 
         lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
 
@@ -205,13 +211,17 @@ def bi_dat_upsampling_x2():
     BI : 仅bicubic
     :return:
     """
+    print("\nbi_dat_upsampling_x2")
     sr_image_dir = args.sr_img_dir
     lr_image_dir = args.lr_img_dir
-    if not lr_image_dir.endwith("X2"):
+    if not lr_image_dir.endswith("X2"):
         lr_image_dir = os.path.join(lr_image_dir, 'X2')
-    nx = args.nx
-    ny = args.ny
+    nx = int(args.nx / 2)
+    ny = int(args.ny / 2)
     nz = args.nz
+    # nx = args.nx
+    # ny = args.ny
+    # nz = args.nz
     print(args.sr_img_dir)
     print(args.lr_img_dir)
 
@@ -228,25 +238,34 @@ def bi_dat_upsampling_x2():
             continue
 
         name, ext = os.path.splitext(filename)
-
+        
         # Read HR image
         lr_img = np.fromfile(os.path.join(lr_image_dir, filename), dtype=np.uint8)
         lr_img = lr_img.reshape(nx, ny, nz)
-        lr_img = lr_img.astype(np.float32) / 5 * 255
         print(f"upsampling before : {lr_img.shape}")
         print(f"lr_size : {lr_img.size}")
-        print(f"lr_num_0 : {lr_img.size - np.count_nonzero(lr_img)}")
-        print(f"lr_max : {np.amax(lr_img)}")
+        hist, bins = np.histogram(lr_img, bins=range(7))
+        densities, _ = np.histogram(lr_img, bins=range(7), density=True)
+        print(f"hist : {hist}")
+        print(f"densities : {densities}")
+        print(f"bins : {bins}")        
+        lr_img = lr_img.astype(np.float32)
         # upsample image 2x
         sr_image_2x = np.zeros((nx*2, ny*2, nz))
         for idx in range(nz):
             sr_image_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        sr_image_2x = cv2.normalize(sr_image_2x, dst=None, alpha=0, beta=255) * 5  / 255
-        sr_image_2x = np.round(sr_image_2x).astype(np.uint8)
+        # sr_image_2x = cv2.normalize(sr_image_2x, dst=None, alpha=0, beta=255) * 255  / 5        
+        sr_image_2x = sr_image_2x * 255 / 5
+        sr_image_2x = np.clip(sr_image_2x, 0, 255)
+        sr_image_2x = np.round(sr_image_2x) / 255 * 5
+        sr_image_2x = sr_image_2x.astype(np.uint8)        
         print(f"upsampling after : {sr_image_2x.shape}")
         print(f"sr_size : {sr_image_2x.size}")
-        print(f"sr_num_0 : {sr_image_2x.size - np.count_nonzero(sr_image_2x)}")
-        print(f"sr_max : {np.amax(sr_image_2x)}")
+        hist, bins = np.histogram(sr_image_2x, bins=range(7))
+        densities, _ = np.histogram(sr_image_2x, bins=range(7), density=True)
+        print(f"hist : {hist}")
+        print(f"densities : {densities}")
+        print(f"bins : {bins}")        
 
         print(f"after resize shape:{np.shape(sr_image_2x)}")
         sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
@@ -254,3 +273,4 @@ def bi_dat_upsampling_x2():
 if __name__ == '__main__':
     bi_dat_downsampling_x2()
     bi_dat_upsampling_x2()
+

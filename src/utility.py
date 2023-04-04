@@ -249,6 +249,9 @@ def quantize(img, rgb_range):
     :param rgb_range:
     :return:
     """
+    """
+        pixel_range = 255 / rgb_range 这是整数，不会有误差吗
+    """
     pixel_range = 255 / rgb_range
     """
     clamp（l, r）：将变量限制在l~r之间

@@ -72,14 +72,18 @@ def psnr_ssim_img():
     log_file.close();
 
 def psnr_ssim_dat():
+    print('\npsnr_ssim_dat')
     dataset = args.dataset
-    now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+    now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
-    log_dir = os.path.join('.', f"{dataset}_{now}")
+    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    print(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
     # log
     log_file = open(log_dir + r"/log.txt", 'x')
 
+    print(args.sr_path)
+    print(args.hr_path)
     sr_dat = np.fromfile(args.sr_path, dtype=np.uint8)
     sr_dat = sr_dat.reshape(args.nx, args.ny, args.nz)
     hr_dat = np.fromfile(args.hr_path, dtype=np.uint8)
@@ -93,24 +97,28 @@ def psnr_ssim_dat():
     for idx in range(args.nz):
         psnr_temp = peak_signal_noise_ratio(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=5)
         ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx], multichannel=False)
+        # print(f"1 : {ssim_temp}")
+        # ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx])
+        # print(f"2 : {ssim_temp}")
         psnr_mean += psnr_temp
         ssim_mean += ssim_temp
         psnr.append(psnr_temp)
         ssim.append(ssim_temp)
-        log = f"ordinal:{idx+1} : psnr:{psnr.item()}, ssim:{ssim.item()}" + '\n'
+        # log = f"ordinal:{idx+1} : psnr:{psnr.item()}, ssim:{ssim.item()}" + '\n'
+        log = f"ordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}"
         log_file.write(log)
         print(log)
-        writer.add_scalar(r'psnr', psnr.item(), idx+1)
-        writer.add_scalar(r'ssim', ssim.item(), idx+1)
+        writer.add_scalar(r'psnr', psnr_temp, idx+1)
+        writer.add_scalar(r'ssim', ssim_temp, idx+1)
 
     psnr_mean /= args.nz
     ssim_mean /= args.nz
-    log = f"psnr_mean:{psnr_mean.item()}, ssim_mean:{ssim_mean.item()}" + '\n'
+    log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}"
     log_file.write(log)
     print(log)
-    psnr = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=5)
-    ssim = structural_similarity(hr_dat, sr_dat, multichannel=True)
-    log = f"the whole : psnr:{psnr.item()}, ssim:{ssim.item()}" + '\n'
+    psnr_whole = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=5)
+    ssim_whole = structural_similarity(hr_dat, sr_dat, multichannel=True)
+    log = f"\nthe whole : psnr:{psnr_whole}, ssim:{ssim_whole}"
     log_file.write(log)
     print(log)
     log_file.close();
