@@ -6,6 +6,5 @@ import datetime
 import torch
 
 
-temp = np.array([1, 2, 1, 4])
-temp = np.where(temp == 1, 2, temp)
+temp = list(range(2, 6))
 print(temp)

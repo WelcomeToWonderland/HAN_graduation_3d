@@ -158,14 +158,10 @@ def bi_dat_downsampling_x2():
     # Downsample HR images
     for filename in os.listdir(hr_image_dir):
         print(filename)
-
         if not filename.endswith(supported_img_formats):
             continue
 
         name, ext = os.path.splitext(filename)
-
-
-
         # Read HR image
         hr_img = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
         hr_img = hr_img.reshape(nx, ny, nz)
@@ -192,9 +188,9 @@ def bi_dat_downsampling_x2():
         print(f"lr_num_0 : {lr_image_2x.size - np.count_nonzero(lr_image_2x)}")
         print(f"lr_max : {np.amax(lr_image_2x)}")
         # lr_image_2x = cv2.normalize(lr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-        lr_image_2x = lr_image_2x * 255 / 5
+        lr_image_2x = lr_image_2x * 255 / 4
         lr_image_2x = np.clip(lr_image_2x, 0, 255)
-        lr_image_2x = np.round(lr_image_2x) / 255 * 5
+        lr_image_2x = np.round(lr_image_2x) / 255 * 4
         lr_image_2x = lr_image_2x.astype(np.uint8)
         print(f"after normalize")
         print(f"hr_size : {lr_image_2x.size}")
@@ -204,7 +200,7 @@ def bi_dat_downsampling_x2():
         print(f"densities : {densities}")
         print(f"bins : {bins}")
 
-        lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
+        lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + ext))
 
 def bi_dat_upsampling_x2():
     """
@@ -255,9 +251,9 @@ def bi_dat_upsampling_x2():
         for idx in range(nz):
             sr_image_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         # sr_image_2x = cv2.normalize(sr_image_2x, dst=None, alpha=0, beta=255) * 255  / 5        
-        sr_image_2x = sr_image_2x * 255 / 5
+        sr_image_2x = sr_image_2x * 255 / 4
         sr_image_2x = np.clip(sr_image_2x, 0, 255)
-        sr_image_2x = np.round(sr_image_2x) / 255 * 5
+        sr_image_2x = np.round(sr_image_2x) / 255 * 4
         sr_image_2x = sr_image_2x.astype(np.uint8)        
         print(f"upsampling after : {sr_image_2x.shape}")
         print(f"sr_size : {sr_image_2x.size}")
@@ -268,9 +264,29 @@ def bi_dat_upsampling_x2():
         print(f"bins : {bins}")        
 
         print(f"after resize shape:{np.shape(sr_image_2x)}")
-        sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
+        sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext))
 
 if __name__ == '__main__':
-    bi_dat_downsampling_x2()
-    bi_dat_upsampling_x2()
+    d1 = 'OABreast_Neg_'
+    d2 = '_Left'
+    h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    h2 = r"_Left\HR"
+    l1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    l2 = r"_Left\LR"
+    s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    s2 = r"_Left\SR"
+    datasets = ['07', '35', '47']
+    nxs = [616, 284, 494]
+    nys = [484, 410, 614]
+    nzs = [719, 722, 752]
+    for idx in range(3):
+        args.dataset = d1 + datasets[idx] + d2
+        args.hr_img_dir = h1 + datasets[idx] + h2
+        args.lr_img_dir = l1 + datasets[idx] + l2
+        args.sr_img_dir = s1 + datasets[idx] + s2
+        args.nx = nxs[idx]
+        args.ny = nys[idx]
+        args.nz = nzs[idx]
+        bi_dat_downsampling_x2()
+        bi_dat_upsampling_x2()
 

@@ -95,7 +95,7 @@ def psnr_ssim_dat():
     psnr_mean = 0
     ssim_mean = 0
     for idx in range(args.nz):
-        psnr_temp = peak_signal_noise_ratio(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=5)
+        psnr_temp = peak_signal_noise_ratio(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4)
         ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx], multichannel=False)
         # print(f"1 : {ssim_temp}")
         # ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx])
@@ -116,7 +116,7 @@ def psnr_ssim_dat():
     log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}"
     log_file.write(log)
     print(log)
-    psnr_whole = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=5)
+    psnr_whole = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=4)
     ssim_whole = structural_similarity(hr_dat, sr_dat, multichannel=True)
     log = f"\nthe whole : psnr:{psnr_whole}, ssim:{ssim_whole}"
     log_file.write(log)
@@ -150,4 +150,21 @@ def psnr_ssim_dat():
 
 
 if __name__ == '__main__':
-    psnr_ssim_dat()
+    d1 = 'OABreast_Neg_'
+    d2 = '_Left'
+    h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    h2 = r"_Left\HR\MergedPhantom.DAT"
+    s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    s2 = r"_Left\SR\X2\MergedPhantom.DAT"
+    datasets = ['07', '35', '47']
+    nxs = [616, 284, 494]
+    nys = [484, 410, 614]
+    nzs = [719, 722, 752]
+    for idx in range(3):
+        args.dataset = d1 + datasets[idx] + d2
+        args.hr_path = h1 + datasets[idx] + h2
+        args.sr_path = s1 + datasets[idx] + s2
+        args.nx = nxs[idx]
+        args.ny = nys[idx]
+        args.nz = nzs[idx]
+        psnr_ssim_dat()
