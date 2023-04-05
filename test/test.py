@@ -6,6 +6,6 @@ import datetime
 import torch
 
 
-temp = cv2.imread(r'D:\workspace\dataset\Manga109\clipping\HR\AisazuNihaIrarenai.png')
-print(temp.dtype)
-
+temp = np.array([1, 2, 1, 4])
+temp = np.where(temp == 1, 2, temp)
+print(temp)
