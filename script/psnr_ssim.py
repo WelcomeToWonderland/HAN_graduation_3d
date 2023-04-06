@@ -25,51 +25,76 @@ parser.add_argument('--nz', type=int)
 args = parser.parse_args()
 
 def psnr_ssim_img():
-    dataset = "Manga109"
-    now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-    log_dir = os.path.join('.', f"{dataset}_{now}")
+    print('\npsnr_ssim_img')
+    dataset = args.dataset
+    now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    # tb
+    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    print(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
+    # log
     log_file = open(log_dir + r"/log.txt", 'x')
 
-    path_sr = r'/root/autodl-tmp/project/HAN/experiment/HANx2_test_noshiftmean_Manga109/results-Manga109'
-    path_hr = r'/root/autodl-tmp/dataset/Manga109/HR'
+    print(args.sr_path)
+    print(args.hr_path)
+    path_sr = args.sr_path
+    path_hr = args.hr_path
     img_sr_list = os.listdir(path_sr)
     img_hr_list = os.listdir(path_hr)
     img_sr_list.sort()
     img_hr_list.sort()
 
-    num = 0
+    psnr = []
+    ssim = []
     psnr_mean = 0
     ssim_mean = 0
-    for img_sr, img_hr in zip(img_sr_list, img_hr_list):
-        num += 1
-
-        path_sr_ = os.path.join(path_sr, img_sr)
-        path_hr_ = os.path.join(path_hr, img_hr)
+    for idx in range(len(img_hr_list)):
+        path_sr_ = os.path.join(path_sr, img_sr_list[idx])
+        path_hr_ = os.path.join(path_hr, img_hr_list[idx])
         img_sr_ = cv2.imread(path_sr_)
         img_hr_ = cv2.imread(path_hr_)
-
-        print(f"shape_hr:{np.shape(img_hr_)}, shape_sr:{np.shape(img_sr_)}")
-
-        psnr = peak_signal_noise_ratio(img_hr_, img_sr_, data_range=255)
-        ssim = structural_similarity(img_hr_, img_sr_, multichannel=True)
-
-        psnr_mean += psnr
-        ssim_mean += ssim
-
-        log = f"ordinal:{num}, img_sr:{img_sr}, img_hr:{img_hr} : psnr:{psnr.item()}, ssim:{ssim.item()}" + '\n'
+        psnr_temp = peak_signal_noise_ratio(img_hr_, img_sr_, data_range=255)
+        ssim_temp = structural_similarity(img_hr_, img_sr_, multichannel=True)
+        psnr_mean += psnr_temp
+        ssim_mean += ssim_temp
+        psnr.append(psnr_temp)
+        ssim.append(ssim_temp)
+        log = f"ordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}" + '\n'
         log_file.write(log)
         print(log)
+        writer.add_scalar(r'psnr', psnr_temp, idx+1)
+        writer.add_scalar(r'ssim', ssim_temp, idx+1)
 
-        writer.add_scalar(r'psnr', psnr.item(), num)
-        writer.add_scalar(r'ssim', ssim.item(), num)
-
-    psnr_mean /= num
-    ssim_mean /= num
-    log = f"psnr_mean:{psnr_mean.item()}, ssim_mean:{ssim_mean.item()}"
+    psnr_mean /= len(img_hr_list)
+    ssim_mean /= len(img_hr_list)
+    log = f"psnr_mean:{psnr_mean}, ssim_mean:{ssim_mean}"
     log_file.write(log)
     print(log)
     log_file.close();
+
+    axis = np.linspace(1, len(img_hr_list), len(img_hr_list))
+    label = f"psnr_{dataset}"
+    fig = plt.figure()
+    plt.title(label)
+    plt.plot(axis, psnr, label=label)
+    plt.legend()
+    plt.plot(axis, psnr)
+    plt.xlabel = 'idx'
+    plt.ylabel = 'psnr'
+    plt.grid(True)
+    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.close(fig)
+
+    label = f"ssim_{dataset}"
+    fig = plt.figure()
+    plt.title(label)
+    plt.plot(axis, ssim, label=label)
+    plt.legend()
+    plt.xlabel = 'idx'
+    plt.ylabel = 'ssim'
+    plt.grid(True)
+    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.close(fig)
 
 def psnr_ssim_dat():
     print('\npsnr_ssim_dat')
@@ -105,7 +130,7 @@ def psnr_ssim_dat():
         psnr.append(psnr_temp)
         ssim.append(ssim_temp)
         # log = f"ordinal:{idx+1} : psnr:{psnr.item()}, ssim:{ssim.item()}" + '\n'
-        log = f"ordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}"
+        log = f"\nordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}"
         log_file.write(log)
         print(log)
         writer.add_scalar(r'psnr', psnr_temp, idx+1)
@@ -127,8 +152,8 @@ def psnr_ssim_dat():
     label = f"psnr_{dataset}"
     fig = plt.figure()
     plt.title(label)
-    # plt.plot(axis, psnr, label=label)
-    # plt.legend()
+    plt.plot(axis, psnr, label=label)
+    plt.legend()
     plt.plot(axis, psnr)
     plt.xlabel = 'idx'
     plt.ylabel = 'psnr'
@@ -136,7 +161,6 @@ def psnr_ssim_dat():
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
 
-    # label = 'ssim'
     label = f"ssim_{dataset}"
     fig = plt.figure()
     plt.title(label)
@@ -168,3 +192,8 @@ if __name__ == '__main__':
         args.ny = nys[idx]
         args.nz = nzs[idx]
         psnr_ssim_dat()
+
+    # args.dataset = 'Manga109'
+    # args.hr_path = 'D:\workspace\dataset\Manga109\clipping\HR'
+    # args.sr_path = 'D:\workspace\dataset\Manga109\clipping\SR\X2'
+    # psnr_ssim_img()

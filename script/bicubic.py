@@ -136,6 +136,63 @@ def bd_dat():
         print(f"after resize shape:{np.shape(lr_image_2x)}")
         lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
 
+def bi_img_downsampling_x2():
+    print("\nbi_img_downsampling_x2")
+    hr_image_dir = args.hr_img_dir
+    lr_image_dir = args.lr_img_dir
+
+    print(hr_image_dir)
+    print(lr_image_dir)
+
+    # create LR image dirs
+    os.makedirs(lr_image_dir + "/X2", exist_ok=True)
+
+    supported_img_formats = (".bmp", ".dib", ".jpeg", ".jpg", ".jpe", ".jp2",
+                             ".png", ".pbm", ".pgm", ".ppm", ".sr", ".ras", ".tif",
+                             ".tiff")
+
+    # Downsample HR images
+    for filename in os.listdir(hr_image_dir):
+        if not filename.endswith(supported_img_formats):
+            continue
+        name, ext = os.path.splitext(filename)
+
+        # Read HR image
+        hr_img = cv2.imread(os.path.join(hr_image_dir, filename))
+        # Downsample image 2x
+        lr_image_2x = cv2.resize(hr_img, (0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        cv2.imwrite(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + ext), lr_image_2x)
+
+def bi_img_upsampling_x2():
+    print("\nbi_img_upsampling_x2")
+    sr_image_dir = args.sr_img_dir
+    lr_image_dir = args.lr_img_dir
+
+    if not lr_image_dir.endswith("X2"):
+        lr_image_dir = os.path.join(lr_image_dir, 'X2')
+
+    print(sr_image_dir)
+    print(lr_image_dir)
+
+    # create LR image dirs
+    os.makedirs(sr_image_dir + "/X2", exist_ok=True)
+
+    supported_img_formats = (".bmp", ".dib", ".jpeg", ".jpg", ".jpe", ".jp2",
+                             ".png", ".pbm", ".pgm", ".ppm", ".sr", ".ras", ".tif",
+                             ".tiff")
+
+    # Upsample HR images
+    for filename in os.listdir(lr_image_dir):
+        if not filename.endswith(supported_img_formats):
+            continue
+        name, ext = os.path.splitext(filename)
+
+        # Read HR image
+        lr_img = cv2.imread(os.path.join(lr_image_dir, filename))
+        # Downsample image 2x
+        sr_image_2x = cv2.resize(lr_img, (0, 0), fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        cv2.imwrite(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext), sr_image_2x)
+
 def bi_dat_downsampling_x2():
     """
     BI : 仅bicubic
@@ -169,10 +226,13 @@ def bi_dat_downsampling_x2():
         print(f"hr_size : {hr_img.size}")
         hist, bins = np.histogram(hr_img, bins=range(7))
         densities, _ = np.histogram(hr_img, bins=range(7), density=True)
+        densities_cumulative = densities.cumsum()
         print(f"hist : {hist}")
         print(f"densities : {densities}")
+        print(f"densities_cumulative : {densities_cumulative}")
         print(f"bins : {bins}")
-        hr_img = hr_img.astype(np.float32)
+        # hr_img = hr_img.astype(np.float32)
+        # hr_img = hr_img.astype(np.float32) * 255 / 4
         # Downsample image 2x
         lr_image_2x = np.zeros((int(nx / 2), int(ny / 2), nz))
         for idx in range(nz):
@@ -187,18 +247,34 @@ def bi_dat_downsampling_x2():
         print(f"lr_size : {lr_image_2x.size}")
         print(f"lr_num_0 : {lr_image_2x.size - np.count_nonzero(lr_image_2x)}")
         print(f"lr_max : {np.amax(lr_image_2x)}")
-        # lr_image_2x = cv2.normalize(lr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-        lr_image_2x = lr_image_2x * 255 / 4
-        lr_image_2x = np.clip(lr_image_2x, 0, 255)
-        lr_image_2x = np.round(lr_image_2x) / 255 * 4
+
+        # lr_image_2x = cv2.normalize(lr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F) * 4
+
+        # lr_image_2x = lr_image_2x * 255 / 4
+        # lr_image_2x = np.clip(lr_image_2x, 0, 255)
+        # lr_image_2x = lr_image_2x / 255 * 4
+
+        # lr_image_2x = np.clip(lr_image_2x, 0, 255)
+        # lr_image_2x = lr_image_2x / 255 * 4
+
+        # lr_image_2x = np.round(lr_image_2x)
+
+        """
+        经过cv2.resize处理，dtypee为浮点数，必须转换dtype
+        """
         lr_image_2x = lr_image_2x.astype(np.uint8)
+
         print(f"after normalize")
-        print(f"hr_size : {lr_image_2x.size}")
-        hist, bins = np.histogram(lr_image_2x, bins=range(7))
-        densities, _ = np.histogram(lr_image_2x, bins=range(7), density=True)
+        print(f"lr_size : {lr_image_2x.size}")
+        hist, bins = np.histogram(lr_image_2x, range(7))
+        densities, _ = np.histogram(lr_image_2x, range(7), density=True)
+        densities_cumulative = densities.cumsum()
         print(f"hist : {hist}")
         print(f"densities : {densities}")
+        print(f"densities_cumulative : {densities_cumulative}")
         print(f"bins : {bins}")
+
+        print(lr_image_2x.dtype)
 
         lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + ext))
 
@@ -218,8 +294,8 @@ def bi_dat_upsampling_x2():
     # nx = args.nx
     # ny = args.ny
     # nz = args.nz
-    print(args.sr_img_dir)
-    print(args.lr_img_dir)
+    print(sr_image_dir)
+    print(lr_image_dir)
 
     # create LR image dirs
     os.makedirs(sr_image_dir + "/X2", exist_ok=True)
@@ -242,26 +318,40 @@ def bi_dat_upsampling_x2():
         print(f"lr_size : {lr_img.size}")
         hist, bins = np.histogram(lr_img, bins=range(7))
         densities, _ = np.histogram(lr_img, bins=range(7), density=True)
+        densities_cumulative = densities.cumsum()
         print(f"hist : {hist}")
         print(f"densities : {densities}")
-        print(f"bins : {bins}")        
-        lr_img = lr_img.astype(np.float32)
+        print(f"densities_cumulative : {densities_cumulative}")
+        print(f"bins : {bins}")
+        # lr_img = lr_img.astype(np.float32)
+        # lr_img = lr_img.astype(np.float32) * 255 / 4
         # upsample image 2x
         sr_image_2x = np.zeros((nx*2, ny*2, nz))
         for idx in range(nz):
             sr_image_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        # sr_image_2x = cv2.normalize(sr_image_2x, dst=None, alpha=0, beta=255) * 255  / 5        
-        sr_image_2x = sr_image_2x * 255 / 4
-        sr_image_2x = np.clip(sr_image_2x, 0, 255)
-        sr_image_2x = np.round(sr_image_2x) / 255 * 4
-        sr_image_2x = sr_image_2x.astype(np.uint8)        
+
+        # sr_image_2x = cv2.normalize(sr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F) * 4
+
+        # sr_image_2x = sr_image_2x * 255 / 4
+        # sr_image_2x = np.clip(sr_image_2x, 0, 255)
+        # sr_image_2x = sr_image_2x / 255 * 4
+
+        # sr_image_2x = np.clip(sr_image_2x, 0, 255)
+        # sr_image_2x = sr_image_2x / 255 * 4
+
+        # sr_image_2x = np.round(sr_image_2x)
+
+        sr_image_2x = sr_image_2x.astype(np.uint8)
+
         print(f"upsampling after : {sr_image_2x.shape}")
         print(f"sr_size : {sr_image_2x.size}")
         hist, bins = np.histogram(sr_image_2x, bins=range(7))
         densities, _ = np.histogram(sr_image_2x, bins=range(7), density=True)
+        densities_cumulative = densities.cumsum()
         print(f"hist : {hist}")
         print(f"densities : {densities}")
-        print(f"bins : {bins}")        
+        print(f"densities_cumulative : {densities_cumulative}")
+        print(f"bins : {bins}")
 
         print(f"after resize shape:{np.shape(sr_image_2x)}")
         sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext))
@@ -289,4 +379,12 @@ if __name__ == '__main__':
         args.nz = nzs[idx]
         bi_dat_downsampling_x2()
         bi_dat_upsampling_x2()
+
+    # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
+    # args.lr_img_dir = 'D:\workspace\dataset\Manga109\clipping\LR'
+    # args.sr_img_dir = 'D:\workspace\dataset\Manga109\clipping\SR'
+    # bi_img_downsampling_x2()
+    # bi_img_upsampling_x2()
+
+
 
