@@ -29,6 +29,9 @@ def extract():
         path_test = os.path.join(path+'_test', folder_suffix[idx_suffix])
         os.makedirs(path_train, exist_ok=True)
         os.makedirs(path_test, exist_ok=True)
+        print(path_orginal)
+        print(path_train)
+        print(path_test)
 
         for filename in os.listdir(path_orginal):
             print(filename)
