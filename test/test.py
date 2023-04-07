@@ -6,5 +6,7 @@ import datetime
 import torch
 
 
-temp = list(range(2, 6))
-print(temp)
+t = torch.tensor([1, 2])
+l = [0, 1, 2, 3]
+
+print(l[t])

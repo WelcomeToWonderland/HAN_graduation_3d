@@ -7,7 +7,37 @@ import random
 class OABreast(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
-        print('Making dataset oabreast_train...')
+        print('Making dataset oabreast...')
+        nxs = [616, 284, 494,
+               616, 284, 494,
+               616, 284, 494]
+        nys = [484, 410, 614,
+               484, 410, 614,
+               484, 410, 614]
+        """
+        original
+        train
+        test
+        """
+        nzs = [719, 722, 752,
+               319, 322, 352,
+               400, 400, 400]
+        if name.split('_')[1] == '07':
+            idx = 0
+        elif name.split('_')[1] == '35':
+            idx = 1
+        elif name.split('_')[1] == '47':
+            idx = 2
+        if name.endswith('train'):
+            multiple = 1
+        elif name.endswith('test'):
+            multiple = 2
+        else:
+            multiple = 0
+        self.nx = nxs[3 * multiple + idx]
+        self.ny = nys[3 * multiple + idx]
+        self.nz = nzs[3 * multiple + idx]
+
         self.args = args
         self.name = name
         self.train = train
@@ -84,12 +114,12 @@ class OABreast(data.Dataset):
         for entry in os.scandir(self.dir_hr):
             filename = os.path.splitext(entry.name)[0]
             list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
-            list_hr = list_hr.reshape(self.args.nx_train, self.args.ny_train, self.args.nz_train)
+            list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
         for entry in os.scandir(self.dir_lr):
             filename = os.path.splitext(entry.name)[0]
             for si, s in enumerate(self.scale):
                 list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
-                list_lr[si] = list_lr[si].reshape(int(self.args.nx_train / s), int(self.args.ny_train / s), self.args.nz_train)
+                list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
 
         return list_hr, list_lr
 
@@ -119,13 +149,9 @@ class OABreast(data.Dataset):
 
         # 第一、二维度，长宽不变，增加第三维度，将二维图像转化为三维图像
         hr = self.images_hr[:, :, idx]
-        x = np.shape(hr)[0]
-        y = np.shape(hr)[1]
-        hr = hr.reshape(x, y ,1)
+        hr = np.expand_dims(hr, 2)
         lr = self.images_lr[self.idx_scale][:, :, idx]
-        x = np.shape(lr)[0]
-        y = np.shape(lr)[1]
-        lr = lr.reshape(x, y ,1)
+        lr = np.expand_dims(lr, 2)
 
         return lr, hr
 

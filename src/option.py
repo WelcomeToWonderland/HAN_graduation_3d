@@ -21,9 +21,9 @@ parser.add_argument('--seed', type=int, default=1,
 # Data specifications
 # 我的添加：dat文件
 parser.add_argument('--dat', action='store_true')
-parser.add_argument('--nx_train', type=int, help='3 dimention of hr of train')
-parser.add_argument('--ny_train', type=int)
-parser.add_argument('--nz_train', type=int)
+# parser.add_argument('--nx_train', type=int, help='3 dimention of hr of train')
+# parser.add_argument('--ny_train', type=int)
+# parser.add_argument('--nz_train', type=int)
 parser.add_argument('--nx_test', type=int, help='3 dimention of hr of test')
 parser.add_argument('--ny_test', type=int)
 parser.add_argument('--nz_test', type=int)
@@ -193,3 +193,33 @@ for arg in vars(args):
     elif vars(args)[arg] == 'False':
         vars(args)[arg] = False
 
+if args.dat:
+    nxs = [616, 284, 494,
+           616, 284, 494,
+           616, 284, 494]
+    nys = [484, 410, 614,
+           484, 410, 614,
+           484, 410, 614]
+    """
+    original
+    train
+    test
+    """
+    nzs = [719, 722, 752,
+           319, 322, 352,
+           400, 400, 400]
+    if args.data_test[0].split('_')[1] == '07':
+        idx = 0
+    elif args.data_test[0].split('_')[1] == '35':
+        idx = 1
+    elif args.data_test[0].split('_')[1] == '47':
+        idx = 2
+    if args.data_test[0].endswith('train'):
+        multiple = 1
+    elif args.data_test[0].endswith('test'):
+        multiple = 2
+    else:
+        multiple = 0
+    args.nx_test = nxs[3 * multiple + idx]
+    args.ny_test = nys[3 * multiple + idx]
+    args.nz_test = nzs[3 * multiple + idx]

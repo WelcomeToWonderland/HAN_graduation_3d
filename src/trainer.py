@@ -71,6 +71,7 @@ class Trainer():
             HAN模型没有set_scale函数，没有用
             """
             sr = self.model(lr, 0)
+            sr = utility.quantize(sr, self.args.rgb_range)
             loss = self.loss(sr, hr)
             """
             反向传播
@@ -128,18 +129,15 @@ class Trainer():
         for idx_data, d in enumerate(self.loader_test):
             for idx_scale, scale in enumerate(self.scale):
                 d.dataset.set_scale(idx_scale)
-
                 # oabreast数据库使用dat存储
                 if self.args.dat:
                     sr_dat = np.zeros((self.args.nx_test, self.args.ny_test, self.args.nz_test), dtype=np.uint8)
-
                 # psnr、ssim数据记录
                 calc_psnr_mean = 0
                 psnr_mean = 0
                 ssim_mean = 0
                 # 计数
                 num = 0
-
                 # 从dataset中，获取图像
                 for lr, hr, filename in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
@@ -148,13 +146,12 @@ class Trainer():
 
                     if self.args.save_results:
                         if self.args.dat:
-                            sr_dat[:, :, filename] = sr.cpu().numpy()[0, 0, :, :]
+                            sr_dat[:, :, filename[0]] = sr.cpu().numpy()[0, 0, :, :]
                         else:
                             save_list = [sr]
                             if self.args.save_gt:
                                 save_list.extend([lr, hr])
-                            if self.args.save_results:
-                                self.ckp.save_results(d, filename[0], save_list, scale)
+                            self.ckp.save_results(d, filename[0], save_list, scale)
 
                     # png图片dataset保存输出
                     # save_list = [sr]
@@ -182,7 +179,6 @@ class Trainer():
                     # self.ckp.writer.add_scalar(r'calc_psnr', calc_psnr, (epoch+1)*len(d) + num)
                     # self.ckp.writer.add_scalar(r'psnr', psnr.item(), (epoch+1)*len(d) + num)
                     # self.ckp.writer.add_scalar(r'ssim', ssim.item(), (epoch+1)*len(d) + num)
-
                 # tensorboard
                 calc_psnr_mean /= len(d)
                 # psnr_mean /= len(d)
@@ -190,12 +186,9 @@ class Trainer():
                 self.ckp.writer.add_scalar(r'calc_psnr_mean', calc_psnr_mean, epoch + 1)
                 # self.ckp.writer.add_scalar(r'psnr_mean', psnr_mean.item(), epoch + 1)
                 # self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
-
-
                 if self.args.save_results:
                     if self.args.dat:
                         self.ckp.save_results_dat(d, sr_dat, scale)
-
                 self.ckp.log[-1, idx_data, idx_scale] /= len(d)
                 best = self.ckp.log.max(0)
                 self.ckp.write_log(

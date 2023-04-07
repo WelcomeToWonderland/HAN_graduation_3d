@@ -77,6 +77,9 @@ def get_patch(*args, patch_size=96, scale=2, multi=False, input_large=False):
 def set_channel(*args, n_channels=3):
     def _set_channel(img):
         if img.ndim == 2:
+            """
+            如果img为二维矩阵，即灰度图，增加一个维度，使其成为三维矩阵
+            """
             img = np.expand_dims(img, axis=2)
 
         c = img.shape[2]

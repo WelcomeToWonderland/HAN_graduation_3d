@@ -17,6 +17,8 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lrs
 from torch.utils.tensorboard import SummaryWriter
 
+from skimage.metrics import peak_signal_noise_ratio
+
 class timer():
     def __init__(self):
         self.acc = 0
@@ -60,7 +62,7 @@ class checkpoint():
             # 新的实验，建立对应实验根目录
             if not args.save:
                 args.save = now
-                if args.save:
+                if args.save_suffix:
                     # 我的修改，时间now添加后缀save_suffix
                     args.save = args.save + "_" + args.save_suffix
             self.dir = os.path.join('..', 'experiment', args.save)
@@ -243,8 +245,6 @@ class checkpoint():
 
 def quantize(img, rgb_range):
     """
-    猜测
-    将浮点数，规格化为符合像素点要求的整数（数据类型不变，只是进行了舍入，没有了小数）
     :param img:
     :param rgb_range:
     :return:
@@ -252,20 +252,29 @@ def quantize(img, rgb_range):
     """
         pixel_range = 255 / rgb_range 这是整数，不会有误差吗
     """
-    pixel_range = 255 / rgb_range
+    pixel_range = 255.0 / rgb_range
     """
     clamp（l, r）：将变量限制在l~r之间
     round：四舍五入的保留小数，默认保留小数位为0，相当于取整；输入数据与输出数据的类型相同
     """
-    return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
+    # return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
+    return img.mul(pixel_range).clamp(0, 255).div(pixel_range).round()
 
 def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     # tensor.nelement() 获取tensor的元素数量
     if hr.nelement() == 1: return 0
 
+    """
+    shave
+    修剪边缘像素
+    """
     diff = (sr - hr) / rgb_range
     if dataset and dataset.dataset.benchmark:
         shave = scale
+        """
+        tensor.size（）获取tensor形状
+        tensor.size(1) 获取第二个维度大小，也就是通道数量
+        """
         if diff.size(1) > 1:
             gray_coeffs = [65.738, 129.057, 25.064]
             convert = diff.new_tensor(gray_coeffs).view(1, 3, 1, 1) / 256
@@ -276,7 +285,13 @@ def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     valid = diff[..., shave:-shave, shave:-shave]
     mse = valid.pow(2).mean()
 
+    print(f"\npeak_signal_noise_ratio : {peak_signal_noise_ratio(hr.cpu().numpy(), sr.cpu().numpy(), data_range=rgb_range)}")
+    print(f"calc_psnr : {-10 * math.log10(mse)}")
+
     return -10 * math.log10(mse)
+
+# def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
+#     return peak_signal_noise_ratio(hr, sr, data_range=rgb_range)
 
 def make_optimizer(args, target):
     '''

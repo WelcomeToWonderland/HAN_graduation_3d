@@ -170,6 +170,9 @@ class Loss(nn.modules.loss._Loss):
         for i, l in enumerate(self.loss):
             if l['function'] is not None:
                 loss = l['function'](sr, hr)
+
+                # print(f"forward {l['type']} : {loss}")
+
                 effective_loss = l['weight'] * loss
                 losses.append(effective_loss)
                 # 累加loss，为之后求平均值做准备

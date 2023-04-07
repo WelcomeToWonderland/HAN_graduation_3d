@@ -36,8 +36,10 @@ class Data:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
 
                 # oabreast数据集
-                if module_name in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left', 'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
-                    m = import_module('data.oabreast_train')
+                if module_name in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
+                                   'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
+                                   'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
+                    m = import_module('data.oabreast')
                     datasets.append(getattr(m, 'OABreast')(args, name=d))
                 # 其他数据集
                 else:
@@ -62,8 +64,10 @@ class Data:
                 m = import_module('data.benchmark')
                 testset = getattr(m, 'Benchmark')(args, train=False, name=d)
             # oabreast修改
-            elif d in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left', 'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
-                m = import_module('data.oabreast_test')
+            elif d in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
+                       'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
+                       'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
+                m = import_module('data.oabreast')
                 testset = getattr(m, 'OABreast')(args, train=False, name=d)
             else:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
