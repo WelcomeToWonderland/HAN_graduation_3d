@@ -14,6 +14,8 @@ import torch.nn as nn
 
 # parse args
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
+parser.add_argument('--data_dir', type=str, default=r'',
+                    help='')
 parser.add_argument('--hr_path', type=str, default=r'',
                     help='path to high resolution image dir')
 parser.add_argument('--sr_path', type=str, default=r'',
@@ -125,7 +127,7 @@ def psnr_ssim_dat():
     loss_mean = 0.0
     for idx in range(args.nz):
         psnr_temp = peak_signal_noise_ratio(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4)
-        ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx], multichannel=False)
+        ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4, multichannel=False)
         loss_temp = loss_function(torch.from_numpy(hr_dat[:, :, idx]).float(), torch.from_numpy(sr_dat[:, :, idx]).float())
         # print(f"1 : {ssim_temp}")
         # ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx])
@@ -151,7 +153,7 @@ def psnr_ssim_dat():
     log_file.write(log)
     print(log)
     psnr_whole = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=4)
-    ssim_whole = structural_similarity(hr_dat, sr_dat, multichannel=True)
+    ssim_whole = structural_similarity(hr_dat, sr_dat, data_range=4, multichannel=True)
     loss_whole = loss_function(torch.form_numpy(hr_dat).float(), torch.from_numpy(sr_dat).float())
     log = f"\nthe whole : psnr:{psnr_whole}, ssim:{ssim_whole}, loss:{loss_whole}"
     log_file.write(log)
@@ -193,39 +195,154 @@ def psnr_ssim_dat():
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
 
-if __name__ == '__main__':
+def psnr_ssim_dat_3d():
+    print('\npsnr_ssim_dat_3d')
+    nxs = [616, 284, 494]
+    nys = [484, 410, 614]
+    nzs = [718, 722, 752]
+    dataset = args.dataset
+    now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    # tb
+    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    print(log_dir)
+    writer = SummaryWriter(log_dir=log_dir)
+    # log
+    log_file = open(log_dir + r"/log.txt", 'x')
+    loss_function = nn.MSELoss()
 
-        args.dataset = r'Neg_07_Left_test'
-        # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
-        # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
-        args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
-        args.sr_path = r'D:\workspace\HAN_for_test\experiment\2023-04-06-19%3A53%3A58HANx2_oabreast\results-Neg_07_Left_test\MergedPhantom_x2_SR.DAT'
-        nxs = [616, 284, 494]
-        nys = [484, 410, 614]
-        """
-        original
-        train
-        test
-        """
-        nzs = [719, 722, 752,
-               319, 322, 352,
-               400, 400, 400]
-        if args.dataset.split('_')[1] == '07':
+    hr_dir = os.path.join(args.data_dir, 'HR')
+    sr_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    print(f"hr_dir : {hr_dir}")
+    print(f"sr_dir : {sr_dir}")
+    hr_list = sorted(os.listdir(hr_dir))
+    sr_list = sorted(os.listdir(sr_dir))
+    psnr = []
+    ssim = []
+    loss = []
+    psnr_mean = 0.0
+    ssim_mean = 0.0
+    loss_mean = 0.0
+    supported_formats = ('.DAT')
+    length = len(hr_list)
+    for idx_filename in range(length):
+        hr_filename = hr_list[idx_filename]
+        sr_filename = sr_list[idx_filename]
+        if hr_filename != sr_filename or not hr_filename.endswith(supported_formats):
+            """
+            可能存在情况：一对数据错位，后面的所有数据都无法处理
+            """
+            continue
+        # 确定三维
+        if hr_filename.split('_')[1] == '07':
             idx = 0
-        elif args.dataset.split('_')[1] == '35':
+        elif hr_filename.split('_')[1] == '35':
             idx = 1
-        elif args.dataset.split('_')[1] == '47':
+        elif hr_filename.split('_')[1] == '47':
             idx = 2
-        if args.dataset.endswith('train'):
-            multiple = 1
-        elif args.dataset.endswith('test'):
-            multiple = 2
-        else:
-            multiple = 0
-        args.nx = nxs[idx]
-        args.ny = nys[idx]
-        args.nz = nzs[3 * multiple + idx]
-        psnr_ssim_dat()
+        nx = nxs[idx]
+        ny = nys[idx]
+        nz = nzs[idx]
+        # 读取文件
+        hr_dat = np.fromfile(os.path.join(hr_dir, hr_filename), dtype=np.uint8)
+        hr_dat = hr_dat.reshape(nx, ny, nz)
+        sr_dat = np.fromfile(os.path.join(sr_dir, sr_filename), dtype=np.uint8)
+        sr_dat = sr_dat.reshape(nx, ny, nz)
+        # 计算
+        psnr_temp = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=4)
+        ssim_temp = structural_similarity(hr_dat, sr_dat, data_range=4, multichannel=True)
+        loss_temp = loss_function(torch.from_numpy(hr_dat).float(), torch.from_numpy(sr_dat).float())
+        psnr_mean += psnr_temp
+        ssim_mean += ssim_temp
+        loss_mean += loss_temp
+        psnr.append(psnr_temp)
+        ssim.append(ssim_temp)
+        loss.append(loss_temp)
+        log = f"\nordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
+        log_file.write(log)
+        print(log)
+        writer.add_scalar(r'psnr', psnr_temp, idx_filename+1)
+        writer.add_scalar(r'ssim', ssim_temp, idx_filename+1)
+        writer.add_scalar(r'loss', loss_temp, idx_filename+1)
+
+    psnr_mean /= length
+    ssim_mean /= length
+    loss_mean /= length
+    log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}, loss_mean : {loss_mean}"
+    log_file.write(log)
+    print(log)
+    log_file.close();
+
+    axis = np.linspace(1, length, length)
+    label = f"psnr_{dataset}"
+    fig = plt.figure()
+    plt.title(label)
+    plt.plot(axis, psnr, label=label)
+    plt.legend()
+    plt.plot(axis, psnr)
+    plt.xlabel = 'idx'
+    plt.ylabel = 'psnr'
+    plt.grid(True)
+    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.close(fig)
+
+    label = f"ssim_{dataset}"
+    fig = plt.figure()
+    plt.title(label)
+    plt.plot(axis, ssim, label=label)
+    plt.legend()
+    plt.xlabel = 'idx'
+    plt.ylabel = 'ssim'
+    plt.grid(True)
+    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.close(fig)
+
+    label = f"loss_{dataset}"
+    fig = plt.figure()
+    plt.title(label)
+    plt.plot(axis, loss, label=label)
+    plt.legend()
+    plt.xlabel = 'idx'
+    plt.ylabel = 'loss'
+    plt.grid(True)
+    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.close(fig)
+
+if __name__ == '__main__':
+    args.dataset = 'OABreast_3d'
+    args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
+    psnr_ssim_dat_3d()
+
+    # args.dataset = r'Neg_07_Left_test'
+    # # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
+    # # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
+    # args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
+    # args.sr_path = r'D:\workspace\HAN_for_test\experiment\2023-04-06-19%3A53%3A58HANx2_oabreast\results-Neg_07_Left_test\MergedPhantom_x2_SR.DAT'
+    # nxs = [616, 284, 494]
+    # nys = [484, 410, 614]
+    # """
+    # original
+    # train
+    # test
+    # """
+    # nzs = [719, 722, 752,
+    #        319, 322, 352,
+    #        400, 400, 400]
+    # if args.dataset.split('_')[1] == '07':
+    #     idx = 0
+    # elif args.dataset.split('_')[1] == '35':
+    #     idx = 1
+    # elif args.dataset.split('_')[1] == '47':
+    #     idx = 2
+    # if args.dataset.endswith('train'):
+    #     multiple = 1
+    # elif args.dataset.endswith('test'):
+    #     multiple = 2
+    # else:
+    #     multiple = 0
+    # args.nx = nxs[idx]
+    # args.ny = nys[idx]
+    # args.nz = nzs[3 * multiple + idx]
+    # psnr_ssim_dat()
 
 
     # 所有dat文件

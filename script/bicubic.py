@@ -2,6 +2,7 @@ import os
 import argparse
 import cv2
 import numpy as np
+from scipy.ndimage import zoom
 
 
 # parse args
@@ -14,6 +15,8 @@ parser.add_argument('--lr_img_dir', type=str, default=r'D:\workspace\dataset\OAB
                     help='path to desired output dir for downsampled images')
 parser.add_argument('--sr_img_dir', type=str, default=r'D:\workspace\dataset\OABreast\clipping\Neg_35_Left\SR',
                     help='path to desired output dir for upsampled images')
+parser.add_argument('--data_dir', type=str, default=r'',
+                    help='总文件夹')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
 parser.add_argument('--nz', type=int)
@@ -135,6 +138,14 @@ def bd_dat():
 
         print(f"after resize shape:{np.shape(lr_image_2x)}")
         lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
+
+def quantize(img, data_range):
+    img = img.astype(np.float64)
+    img = img * 255 / data_range
+    img = np.clip(img, 0, 255)
+    img = img / 255 * data_range
+    img = np.round(img).astype(np.uint8)
+    return img
 
 def bi_img_downsampling_x2():
     print("\nbi_img_downsampling_x2")
@@ -356,29 +367,121 @@ def bi_dat_upsampling_x2():
         print(f"after resize shape:{np.shape(sr_image_2x)}")
         sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext))
 
-if __name__ == '__main__':
-    d1 = 'OABreast_Neg_'
-    d2 = '_Left'
-    h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    h2 = r"_Left\HR"
-    l1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    l2 = r"_Left\LR"
-    s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    s2 = r"_Left\SR"
-    datasets = ['07', '35', '47']
+
+def bi_dat_downsampling_x2_3d():
     nxs = [616, 284, 494]
     nys = [484, 410, 614]
-    nzs = [719, 722, 752]
-    for idx in range(3):
-        args.dataset = d1 + datasets[idx] + d2
-        args.hr_img_dir = h1 + datasets[idx] + h2
-        args.lr_img_dir = l1 + datasets[idx] + l2
-        args.sr_img_dir = s1 + datasets[idx] + s2
-        args.nx = nxs[idx]
-        args.ny = nys[idx]
-        args.nz = nzs[idx]
-        bi_dat_downsampling_x2()
-        bi_dat_upsampling_x2()
+    nzs = [718, 722, 752]
+    print("\nbi_dat_downsampling_x2_3d")
+    hr_image_dir = os.path.join(args.data_dir, 'HR')
+    lr_image_dir = os.path.join(args.data_dir, 'LR', "X2")
+    print(f"sr_image_dir : {hr_image_dir}")
+    print(f"lr_image_dir : {lr_image_dir}")
+    # create LR image dirs
+    os.makedirs(lr_image_dir, exist_ok=True)
+    supported_img_formats = (".DAT")
+    # 遍历HR文件夹下的文件
+    for filename in os.listdir(hr_image_dir):
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 确定三维
+        if filename.split('_')[1] == '07':
+            idx = 0
+        elif filename.split('_')[1] == '35':
+            idx = 1
+        elif filename.split('_')[1] == '47':
+            idx = 2
+        nx = nxs[idx]
+        ny = nys[idx]
+        nz = nzs[idx]
+        # 获取图片
+        hr_img = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
+        hr_img = hr_img.reshape(nx, ny, nz)
+        # before shape
+        print(hr_img.shape)
+        # downsample
+        """
+        order
+        0 : 最邻近插值
+        1 : 双线性插值
+        3 : 双三次插值
+        """
+        lr_img = zoom(hr_img, (0.5, 0.5, 0.5), order=1)
+        lr_img =quantize(lr_img, 4)
+        # after shape
+        print(lr_img.shape)
+        # 保存
+        lr_img.tofile(os.path.join(lr_image_dir, filename))
+
+def bi_dat_upsampling_x2_3d():
+    nxs = [616, 284, 494]
+    nys = [484, 410, 614]
+    nzs = [718, 722, 752]
+    print("\nbi_dat_upsampling_x2_3d")
+    sr_image_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    lr_image_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    print(f"data_dir : {args.data_dir}")
+    print(f"sr_image_dir : {sr_image_dir}")
+    print(f"lr_image_dir : {lr_image_dir}")
+    # create SR image dirs
+    os.makedirs(sr_image_dir, exist_ok=True)
+    supported_img_formats = (".DAT")
+    # 遍历HR文件夹下的文件
+    for filename in os.listdir(lr_image_dir):
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 确定三维
+        if filename.split('_')[1] == '07':
+            idx = 0
+        elif filename.split('_')[1] == '35':
+            idx = 1
+        elif filename.split('_')[1] == '47':
+            idx = 2
+        nx = nxs[idx]
+        ny = nys[idx]
+        nz = nzs[idx]
+        # 获取图片
+        lr_img = np.fromfile(os.path.join(lr_image_dir, filename), dtype=np.uint8)
+        lr_img = lr_img.reshape(nx//2, ny//2, nz//2)
+        # before shape
+        print(lr_img.shape)
+        # upsample
+        sr_img = zoom(lr_img, (2, 2, 2), order=1)
+        sr_img = quantize(sr_img, 4)
+        # after shape
+        print(sr_img.shape)
+        # save
+        sr_img.tofile(os.path.join(sr_image_dir, filename))
+
+if __name__ == '__main__':
+    # 只需要提供文件夹路径
+    args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D'
+    # bi_dat_downsampling_x2_3d()
+    bi_dat_upsampling_x2_3d()
+
+
+    # d1 = 'OABreast_Neg_'
+    # d2 = '_Left'
+    # h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    # h2 = r"_Left\HR"
+    # l1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    # l2 = r"_Left\LR"
+    # s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    # s2 = r"_Left\SR"
+    # datasets = ['07', '35', '47']
+    # nxs = [616, 284, 494]
+    # nys = [484, 410, 614]
+    # nzs = [718, 722, 752]
+    # for idx in range(3):
+    #     args.dataset = d1 + datasets[idx] + d2
+    #     args.hr_img_dir = h1 + datasets[idx] + h2
+    #     args.lr_img_dir = l1 + datasets[idx] + l2
+    #     args.sr_img_dir = s1 + datasets[idx] + s2
+    #     args.nx = nxs[idx]
+    #     args.ny = nys[idx]
+    #     args.nz = nzs[idx]
+    #     bi_dat_downsampling_x2()
+    #     bi_dat_upsampling_x2()
 
     # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
     # args.lr_img_dir = 'D:\workspace\dataset\Manga109\clipping\LR'
