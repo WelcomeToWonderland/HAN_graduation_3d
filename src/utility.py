@@ -444,3 +444,9 @@ def get_3d(filename):
         ny = nys[3 * multiple + idx]
         nz = nzs[3 * multiple + idx]
         return nx, ny, nz
+
+def freeze(model):
+    for name, param in model.named_parameters():
+        if name not in ["head.0.weight", "head.0.bias"]:
+            # 关键一步，设置为False之后，优化器溜不会对参数进行更新
+            param.requires_grad = False

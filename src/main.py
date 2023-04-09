@@ -84,3 +84,10 @@ if __name__ == '__main__':
     print(han.head)
     # 保存模型状态字典（head部分是白板）
     torch.save(han.state_dict(), path2save)
+
+    # 冻结除最后一层外的全部参数
+    for name, param in han.named_parameters():
+        print(f"name : {name}")
+        # if name not in ["fc.weight", "fc.bias"]:
+        #     #         print(name)
+        #     param.requires_grad = False  # 关键一步，设置为False之后，优化器溜不会对参数进行更新

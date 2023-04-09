@@ -3,6 +3,7 @@ from model import common
 import torch
 import torch.nn as nn
 import pdb
+from src.utility import freeze
 
 def make_model(args, parent=False):
     return HAN(args)
@@ -191,6 +192,10 @@ class HAN(nn.Module):
         self.last_conv = nn.Conv2d(n_feats*11, n_feats, 3, 1, 1)
         self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
         self.tail = nn.Sequential(*modules_tail)
+
+        # 冻结
+        freeze(self)
+
 
     def forward(self, x):
 
