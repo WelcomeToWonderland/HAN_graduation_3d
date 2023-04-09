@@ -51,24 +51,26 @@ class Loss(nn.modules.loss._Loss):
         if len(self.loss) > 1:
             self.loss.append({'type': 'Total', 'weight': 0, 'function': None})
 
+        """
+        self.loss : 存储各个loss的信息（包括函数）
+        self.loss_module : 存储各个loss的函数
+        """
         for l in self.loss:
             if l['function'] is not None:
                 print('{:.3f} * {}'.format(l['weight'], l['type']))
                 self.loss_module.append(l['function'])
 
-        # loss log，为文件loss.pt做准备
+        # loss log，为文件loss_log.pt做准备
         self.log = torch.Tensor()
         # 创建设备对象，为tensor的计算做准备
         device = torch.device('cpu' if args.cpu else 'cuda')
         self.loss_module.to(device)
         if args.precision == 'half': self.loss_module.half()
 
-        #
-        # if not args.cpu and args.n_GPUs > 1:
-        #     self.loss_module = nn.DataParallel(
-        #         self.loss_module, range(args.n_GPUs)
-        #     )
-        if not args.cpu and args.n_GPUs > 0:
+        """
+        将loss的计算模块，复制到各个gpu上，并行计算
+        """
+        if not args.cpu and args.n_GPUs > 1:
             self.loss_module = nn.DataParallel(
                 self.loss_module, range(args.n_GPUs)
             )
@@ -90,7 +92,10 @@ class Loss(nn.modules.loss._Loss):
         ))
         # 加载上次训练中每个epoch的loss
         self.log = torch.load(os.path.join(apath, 'loss_log.pt'))
-        # 没搞懂
+        """
+        存在少数loss也有scheduler
+        比如，在一些情况下，使用动态加权loss
+        """
         for l in self.get_loss_module():
             if hasattr(l, 'scheduler'):
                 for _ in range(len(self.log)): l.scheduler.step()

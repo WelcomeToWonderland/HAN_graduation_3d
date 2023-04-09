@@ -70,12 +70,24 @@ class checkpoint():
             # 加载已存在实验数据，加载对应实验根目录
             self.dir = os.path.join('..', 'experiment', args.load)
             if os.path.exists(self.dir):
+                """
+                加载self.log（psnr_log.pt）
+                """
                 self.log = torch.load(self.get_path('psnr_log.pt'))
+                """
+                从psnr_log.pt(checkpoint)、loss_log.pt(loss)、完成load加载的scheduler（optimizer）
+                中，可以获得以往训练累计完成的epoch数量
+                """
                 print('Continue from epoch {}...'.format(len(self.log)))
             else:
                 args.load = ''
 
-        # reset：重置实验，删除实验根目录
+        """
+        reset：重置实验，删除实验根目录
+        reset前，self.dir已加载
+        load不为空时，self.log（psnr_log.pt）已加载
+        其他都在加载前，reset文件
+        """
         if args.reset:
             os.system('rm -rf ' + self.dir)
             args.load = ''
@@ -92,7 +104,7 @@ class checkpoint():
         self.writer = SummaryWriter(log_dir=self.get_path('tblog'))
 
         # log_file，加载log.txt：model结构
-        # w：打开文件，具有写权限
+        # a：打开文件，具有写权限(追加)
         # X：创建文件，具有写权限
         open_type = 'a' if os.path.exists(self.get_path('log.txt'))else 'x'
         self.log_file = open(self.get_path('log.txt'), open_type)
@@ -315,19 +327,21 @@ def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     valid = diff[..., shave:-shave, shave:-shave]
     mse = valid.pow(2).mean()
 
-    print(f"\npeak_signal_noise_ratio : {peak_signal_noise_ratio(hr.cpu().numpy(), sr.cpu().numpy(), data_range=rgb_range)}")
-    print(f"calc_psnr : {-10 * math.log10(mse)}")
+    # print(f"\npeak_signal_noise_ratio : {peak_signal_noise_ratio(hr.cpu().numpy(), sr.cpu().numpy(), data_range=rgb_range)}")
+    # print(f"calc_psnr : {-10 * math.log10(mse)}")
 
     return -10 * math.log10(mse)
 
-def make_optimizer(args, target):
+def make_optimizer(args, target, cpk):
     '''
         make optimizer and scheduler together
     '''
     # optimizer
     """
     trainable ：获取模型中可训练的参数
-    lr learning rate
+    target : modle
+    lr learning rate : 参数更新的步长
+    weight decay 权重衰减 : 正则化项，使权重接近于零，防止模型过拟合
     """
     trainable = filter(lambda x: x.requires_grad, target.parameters())
     kwargs_optimizer = {'lr': args.lr, 'weight_decay': args.weight_decay}
@@ -345,6 +359,12 @@ def make_optimizer(args, target):
         kwargs_optimizer['eps'] = args.epsilon
 
     # scheduler
+    """
+    scheduler ：lr调节器
+    milestone ：学习率调整策略的里程碑点，即学习率需要调整的时间节点
+    lrs.MultiStepLR ：每到一个milestone，lr乘以一个常数系数
+    gamma ：lrs.MultiStepLR对应的lr衰减因子
+    """
     milestones = list(map(lambda x: int(x), args.decay.split('-')))
     kwargs_scheduler = {'milestones': milestones, 'gamma': args.gamma}
     scheduler_class = lrs.MultiStepLR
@@ -365,8 +385,12 @@ def make_optimizer(args, target):
 
         def load(self, load_dir, epoch=1):
             self.load_state_dict(torch.load(self.get_dir(load_dir)))
-            if epoch > 1:
-                for _ in range(epoch): self.scheduler.step()
+            """
+            让学习率调整epoch轮
+            """
+            for _ in range(epoch): self.scheduler.step()
+            # if epoch > 1:
+            #     for _ in range(epoch): self.scheduler.step()
 
         def get_dir(self, dir_path):
             return os.path.join(dir_path, 'optimizer.pt')
@@ -383,6 +407,9 @@ def make_optimizer(args, target):
     
     optimizer = CustomOptimizer(trainable, **kwargs_optimizer)
     optimizer._register_scheduler(scheduler_class, **kwargs_scheduler)
+    # 加载load中的优化器参数
+    if args.load != '':
+        optimizer.load(load_dir=cpk.dir, epoch=len(cpk.log))
     return optimizer
 
 def get_3d(filename):

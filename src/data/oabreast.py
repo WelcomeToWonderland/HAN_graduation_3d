@@ -3,40 +3,13 @@ import os
 import numpy as np
 from data import common
 import random
+from src.utility import get_3d
 
 class OABreast(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
         print('Making dataset oabreast...')
-        nxs = [616, 284, 494,
-               616, 284, 494,
-               616, 284, 494]
-        nys = [484, 410, 614,
-               484, 410, 614,
-               484, 410, 614]
-        """
-        original
-        train
-        test
-        """
-        nzs = [719, 722, 752,
-               319, 322, 352,
-               400, 400, 400]
-        if name.split('_')[1] == '07':
-            idx = 0
-        elif name.split('_')[1] == '35':
-            idx = 1
-        elif name.split('_')[1] == '47':
-            idx = 2
-        if name.endswith('train'):
-            multiple = 1
-        elif name.endswith('test'):
-            multiple = 2
-        else:
-            multiple = 0
-        self.nx = nxs[3 * multiple + idx]
-        self.ny = nys[3 * multiple + idx]
-        self.nz = nzs[3 * multiple + idx]
+        self.nx, self.ny, self.nz = get_3d(name)
 
         self.args = args
         self.name = name

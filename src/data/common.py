@@ -147,7 +147,7 @@ def get_patch_3d(*args, patch_size=96, scale=2, multi=False, input_large=False):
 
     return ret
 
-def set_channel_3d(*args, n_channels=3):
+def set_channel(*args, n_channels=3):
     def _set_channel(img):
 
         if img.ndim == 2:
@@ -219,9 +219,12 @@ def augment(*args, hflip=True, rot=True):
         :param img:
         :return:
         """
-        if hflip: img = img[:, ::-1, :]
-        if vflip: img = img[::-1, :, :]
-        if rot90: img = img.transpose(1, 0, 2)
+        # if hflip: img = img[:, ::-1, :]
+        # if vflip: img = img[::-1, :, :]
+        # if rot90: img = img.transpose(1, 0, 2)
+        if hflip: img = img[:, ::-1]
+        if vflip: img = img[::-1, :]
+        if rot90: img = img.transpose(1, 0)
         
         return img
 

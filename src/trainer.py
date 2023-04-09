@@ -23,7 +23,7 @@ class Trainer():
         self.loader_test = loader.loader_test
         self.model = my_model
         self.loss = my_loss
-        self.optimizer = utility.make_optimizer(args, self.model)
+        self.optimizer = utility.make_optimizer(args, self.model, ckp)
 
         if self.args.load != '':
             self.optimizer.load(ckp.dir, epoch=len(ckp.log))
@@ -134,7 +134,7 @@ class Trainer():
                     testset中只存放了一份数据
                     根据data_test，确定三维
                     """
-                    nx, ny, nz = utility.get_3d(self.args.data_test)
+                    nx, ny, nz = utility.get_3d(self.args.data_test[0])
                     sr_dat = np.zeros((nx, ny, nz), dtype=np.uint8)
                 # psnr、ssim数据记录
                 calc_psnr_mean = 0

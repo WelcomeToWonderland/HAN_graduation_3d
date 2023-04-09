@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from scipy.ndimage import zoom
 from src.utility import get_3d
+import re
 
 
 # parse args
@@ -211,162 +212,100 @@ def bi_dat_downsampling_x2():
     :return:
     """
     print("\nbi_dat_downsampling_x2")
-    hr_image_dir = args.hr_img_dir
-    lr_image_dir = args.lr_img_dir
-    nx = args.nx
-    ny = args.ny
-    nz = args.nz
-    print(args.hr_img_dir)
-    print(args.lr_img_dir)
-
-    # create LR image dirs
-    os.makedirs(lr_image_dir + "/X2", exist_ok=True)
-
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    hr_dir = os.path.join(args.data_dir, 'HR')
+    hr_names = os.listdir(hr_dir)
+    if len(hr_names) == 0:
+        print(f"no hr files, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    print(f"hr_dir : {hr_dir}")
+    print(f"lr_dir : {lr_dir}")
+    # 获取三维
+    dataset = re.split(r'[\\/]', args.data_dir)[-1]
+    print(f"dataset : {dataset}")
+    nx, ny, nz = get_3d(dataset)
+    # 建立LR文件夹
+    os.makedirs(lr_dir, exist_ok=True)
+    # 支持文件类型
     supported_img_formats = (".DAT")
 
-    # Downsample HR images
-    for filename in os.listdir(hr_image_dir):
+    # 下采样
+    for filename in hr_names:
         print(filename)
         if not filename.endswith(supported_img_formats):
             continue
-
-        name, ext = os.path.splitext(filename)
-        # Read HR image
-        hr_img = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
+        # 获取hr
+        hr_img = np.fromfile(os.path.join(hr_dir, filename), dtype=np.uint8)
         hr_img = hr_img.reshape(nx, ny, nz)
         print(f"downsample before : {hr_img.shape}")
-        print(f"hr_size : {hr_img.size}")
-        hist, bins = np.histogram(hr_img, bins=range(7))
-        densities, _ = np.histogram(hr_img, bins=range(7), density=True)
-        densities_cumulative = densities.cumsum()
-        print(f"hist : {hist}")
-        print(f"densities : {densities}")
-        print(f"densities_cumulative : {densities_cumulative}")
-        print(f"bins : {bins}")
-        # hr_img = hr_img.astype(np.float32)
-        # hr_img = hr_img.astype(np.float32) * 255 / 4
-        # Downsample image 2x
-        lr_image_2x = np.zeros((int(nx / 2), int(ny / 2), nz))
+        # 进行下采样
+        lr_img_2x = np.zeros((nx//2, ny//2, nz))
         for idx in range(nz):
-            lr_image_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-            if(idx == nz -1):
-                print(f"downsampling")
-                print(f"idx = nz -1, size : {lr_image_2x[:, :, idx].size}")
-                print(f"idx = nz -1, num_0 : {lr_image_2x[:, :, idx].size - np.count_nonzero(lr_image_2x[:, :, idx])}")
-                print(f"idx = nz -1, max : {np.amax(lr_image_2x[:, :, idx])}")
-        print(f"downsample after : {lr_image_2x.shape}")
-        print(f"before normalize")
-        print(f"lr_size : {lr_image_2x.size}")
-        print(f"lr_num_0 : {lr_image_2x.size - np.count_nonzero(lr_image_2x)}")
-        print(f"lr_max : {np.amax(lr_image_2x)}")
-
-        # lr_image_2x = cv2.normalize(lr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F) * 4
-
-        # lr_image_2x = lr_image_2x * 255 / 4
-        # lr_image_2x = np.clip(lr_image_2x, 0, 255)
-        # lr_image_2x = lr_image_2x / 255 * 4
-
-        # lr_image_2x = np.clip(lr_image_2x, 0, 255)
-        # lr_image_2x = lr_image_2x / 255 * 4
-
-        # lr_image_2x = np.round(lr_image_2x)
-
+            lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        print(f"downsample after : {lr_img_2x.shape}")
         """
-        经过cv2.resize处理，dtypee为浮点数，必须转换dtype
+        经过cv2.resize处理，dtype为浮点数，必须转换dtype
         """
-        lr_image_2x = lr_image_2x.astype(np.uint8)
-
-        print(f"after normalize")
-        print(f"lr_size : {lr_image_2x.size}")
-        hist, bins = np.histogram(lr_image_2x, range(7))
-        densities, _ = np.histogram(lr_image_2x, range(7), density=True)
-        densities_cumulative = densities.cumsum()
-        print(f"hist : {hist}")
-        print(f"densities : {densities}")
-        print(f"densities_cumulative : {densities_cumulative}")
-        print(f"bins : {bins}")
-
-        print(lr_image_2x.dtype)
-
-        lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + ext))
+        lr_img_2x = np.clip(0, 4, lr_img_2x)
+        lr_img_2x = lr_img_2x.astype(np.uint8)
+        # 保存lr文件
+        lr_img_2x.tofile(os.path.join(lr_dir, filename))
 
 def bi_dat_upsampling_x2():
     """
     BI : 仅bicubic
     :return:
     """
-    print("\nbi_dat_upsampling_x2")
-    sr_image_dir = args.sr_img_dir
-    lr_image_dir = args.lr_img_dir
-    if not lr_image_dir.endswith("X2"):
-        lr_image_dir = os.path.join(lr_image_dir, 'X2')
-    nx = int(args.nx / 2)
-    ny = int(args.ny / 2)
-    nz = args.nz
-    # nx = args.nx
-    # ny = args.ny
-    # nz = args.nz
-    print(sr_image_dir)
-    print(lr_image_dir)
-
-    # create LR image dirs
-    os.makedirs(sr_image_dir + "/X2", exist_ok=True)
-
+    print("\nbi_dat_downsampling_x2")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    lr_names = os.listdir(lr_dir)
+    if len(lr_names) == 0:
+        print(f"no lr files, function terminates")
+        return
+    sr_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    print(f"lr_dir : {lr_dir}")
+    print(f"sr_dir : {sr_dir}")
+    # 获取三维
+    dataset = re.split(r'[\\/]', args.data_dir)[-1]
+    print(f"dataset : {dataset}")
+    nx, ny, nz = get_3d(dataset)
+    # 建立sr文件夹
+    os.makedirs(sr_dir, exist_ok=True)
+    # 支持文件类型
     supported_img_formats = (".DAT")
 
-    # Downsample HR images
-    for filename in os.listdir(lr_image_dir):
+    # 下采样
+    for filename in lr_names:
         print(filename)
-
         if not filename.endswith(supported_img_formats):
             continue
-
-        name, ext = os.path.splitext(filename)
-        
-        # Read HR image
-        lr_img = np.fromfile(os.path.join(lr_image_dir, filename), dtype=np.uint8)
-        lr_img = lr_img.reshape(nx, ny, nz)
-        print(f"upsampling before : {lr_img.shape}")
-        print(f"lr_size : {lr_img.size}")
-        hist, bins = np.histogram(lr_img, bins=range(7))
-        densities, _ = np.histogram(lr_img, bins=range(7), density=True)
-        densities_cumulative = densities.cumsum()
-        print(f"hist : {hist}")
-        print(f"densities : {densities}")
-        print(f"densities_cumulative : {densities_cumulative}")
-        print(f"bins : {bins}")
-        # lr_img = lr_img.astype(np.float32)
-        # lr_img = lr_img.astype(np.float32) * 255 / 4
-        # upsample image 2x
-        sr_image_2x = np.zeros((nx*2, ny*2, nz))
+        # 获取lr
+        lr_img = np.fromfile(os.path.join(lr_dir, filename), dtype=np.uint8)
+        lr_img = lr_img.reshape(nx//2, ny//2, nz)
+        print(f"downsample before : {lr_img.shape}")
+        # 进行下采样
+        sr_img_2x = np.zeros((nx, ny, nz))
         for idx in range(nz):
-            sr_image_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+            sr_img_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        print(f"downsample after : {sr_img_2x.shape}")
+        """
+        经过cv2.resize处理，dtype为浮点数，必须转换dtype
+        """
+        sr_img_2x = np.clip(0, 4, sr_img_2x)
+        sr_img_2x = sr_img_2x.astype(np.uint8)
 
-        # sr_image_2x = cv2.normalize(sr_image_2x, dst=None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F) * 4
-
-        # sr_image_2x = sr_image_2x * 255 / 4
-        # sr_image_2x = np.clip(sr_image_2x, 0, 255)
-        # sr_image_2x = sr_image_2x / 255 * 4
-
-        # sr_image_2x = np.clip(sr_image_2x, 0, 255)
-        # sr_image_2x = sr_image_2x / 255 * 4
-
-        # sr_image_2x = np.round(sr_image_2x)
-
-        sr_image_2x = sr_image_2x.astype(np.uint8)
-
-        print(f"upsampling after : {sr_image_2x.shape}")
-        print(f"sr_size : {sr_image_2x.size}")
-        hist, bins = np.histogram(sr_image_2x, bins=range(7))
-        densities, _ = np.histogram(sr_image_2x, bins=range(7), density=True)
-        densities_cumulative = densities.cumsum()
-        print(f"hist : {hist}")
-        print(f"densities : {densities}")
-        print(f"densities_cumulative : {densities_cumulative}")
-        print(f"bins : {bins}")
-
-        print(f"after resize shape:{np.shape(sr_image_2x)}")
-        sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext))
+        # 保存sr文件
+        sr_img_2x.tofile(os.path.join(sr_dir, filename))
 
 def bi_dat_downsampling_x2_3d():
     print("\nbi_dat_downsampling_x2_3d")
@@ -420,7 +359,7 @@ def bi_dat_upsampling_x2_3d():
         nx, ny, nz = get_3d(os.path.splitext(filename)[0])
         # 获取图片
         lr_img = np.fromfile(os.path.join(lr_image_dir, filename), dtype=np.uint8)
-        lr_img = lr_img.reshape(nx//2, ny//2, nz//2)
+        lr_img = lr_img.reshape(nx//2, ny//2, nz)
         # before shape
         print(lr_img.shape)
         # upsample
@@ -432,35 +371,25 @@ def bi_dat_upsampling_x2_3d():
         sr_img.tofile(os.path.join(sr_image_dir, filename))
 
 if __name__ == '__main__':
-    # 只需要提供文件夹路径
-    args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\temp'
-    bi_dat_downsampling_x2_3d()
-    bi_dat_upsampling_x2_3d()
+    # # oabreast 3d
+    # # 只需要提供文件夹路径
+    # args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\temp'
+    # bi_dat_downsampling_x2_3d()
+    # bi_dat_upsampling_x2_3d()
 
-
-    # d1 = 'OABreast_Neg_'
-    # d2 = '_Left'
-    # h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    # h2 = r"_Left\HR"
-    # l1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    # l2 = r"_Left\LR"
-    # s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    # s2 = r"_Left\SR"
-    # datasets = ['07', '35', '47']
-    # nxs = [616, 284, 494]
-    # nys = [484, 410, 614]
-    # nzs = [718, 722, 752]
-    # for idx in range(3):
-    #     args.dataset = d1 + datasets[idx] + d2
-    #     args.hr_img_dir = h1 + datasets[idx] + h2
-    #     args.lr_img_dir = l1 + datasets[idx] + l2
-    #     args.sr_img_dir = s1 + datasets[idx] + s2
-    #     args.nx = nxs[idx]
-    #     args.ny = nys[idx]
-    #     args.nz = nzs[idx]
-    #     bi_dat_downsampling_x2()
-    #     bi_dat_upsampling_x2()
-
+    # oabreast 2d
+    # 提供文件夹
+    d1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    d2 = r"_Left"
+    datasets = ['07', '35', '47']
+    suffixes = ['', '_train', '_test']
+    for idx_dataset in range(3):
+        for idx_suffix in range(3):
+            args.data_dir = d1 + datasets[idx_dataset] + d2 + suffixes[idx_suffix]
+            bi_dat_downsampling_x2()
+            bi_dat_upsampling_x2()
+        
+    # png图片
     # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
     # args.lr_img_dir = 'D:\workspace\dataset\Manga109\clipping\LR'
     # args.sr_img_dir = 'D:\workspace\dataset\Manga109\clipping\SR'
