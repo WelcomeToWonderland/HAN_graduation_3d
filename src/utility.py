@@ -264,7 +264,7 @@ class checkpoint():
         if self.args.save_results:
             filename = self.get_path(
                 'results-{}'.format(dataset.dataset.name),
-                '{}_x{}_SR.DAT'.format(self.args.data_test, scale)
+                '{}_x{}_SR.DAT'.format(self.args.data_test[0], scale)
             )
             sr_dat.tofile(filename)
 

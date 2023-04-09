@@ -113,6 +113,10 @@ test_every
 """
 parser.add_argument('--test_every', type=int, default=1000,
                     help='do test per every N batches')
+"""
+总epoch
+要算上之前累加的
+"""
 parser.add_argument('--epochs', type=int, default=400,
                     help='number of epochs to train')
 parser.add_argument('--batch_size', type=int, default=16,
