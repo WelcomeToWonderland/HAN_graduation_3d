@@ -24,6 +24,7 @@ class Benchmark(srdata.SRData):
         list_lr = [[] for _ in self.scale]
         for entry in os.scandir(self.dir_hr):
             filename = os.path.splitext(entry.name)[0]
+            # 图片的完整路径
             list_hr.append(os.path.join(self.dir_hr, filename + self.ext))
         #pdb.set_trace()
         for entry in os.scandir(self.dir_lr):

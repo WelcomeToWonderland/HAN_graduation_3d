@@ -71,29 +71,6 @@ class SRData(data.Dataset):
             else:
                 self.repeat = max(n_patches // n_images, 1)
 
-    def _scan(self):
-        '''
-        扫描dataset文件夹，返回图片路径列表（只是路径，并没有读取）
-        :return:
-        '''
-        names_hr = sorted(
-            glob.glob(os.path.join(self.dir_hr, '*' + self.ext[0]))
-        )
-        """
-        为了lr与hr一一对应，直接根据hr文件名，生成对应scale的lr文件名
-        """
-        names_lr = [[] for _ in self.scale]
-        for f in names_hr:
-            filename,_ = os.path.splitext( os.path.basename(f) )[0].split('_')
-            for si, s in enumerate(self.scale):
-                names_lr[si].append(os.path.join(
-                    self.dir_lr, 'X{}/{}{}{}'.format(
-                        s, filename, '_LR', self.ext[1]
-                    )
-                ))
-
-        return names_hr, names_lr
-
     def _set_filesystem(self, dir_data):
         '''
         结合dir_data和数据集name，拼接成hr和lr文件夹路径
@@ -108,6 +85,30 @@ class SRData(data.Dataset):
         hr后缀与lr后缀
         """
         self.ext = ('.png', '.png')
+
+    def _scan(self):
+        '''
+        获取hr和lr的所有图片的完整路径列表
+        :return:
+        '''
+        names_hr = sorted(
+            glob.glob(os.path.join(self.dir_hr, '*' + self.ext[0]))
+        )
+        """
+        为了lr与hr一一对应，直接根据hr文件名，生成对应scale的lr文件名
+        """
+        names_lr = [[] for _ in self.scale]
+        for f in names_hr:
+            filename,_ = os.path.splitext( os.path.basename(f) )[0].split('_')
+            for si, s in enumerate(self.scale):
+                # 图片完整路径
+                names_lr[si].append(os.path.join(
+                    self.dir_lr, 'X{}/{}{}{}'.format(
+                        s, filename, '_LR', self.ext[1]
+                    )
+                ))
+
+        return names_hr, names_lr
 
     # 函数组-2
     def __getitem__(self, idx):
@@ -129,7 +130,11 @@ class SRData(data.Dataset):
         f_lr = self.images_lr[self.idx_scale][idx]
         #print('！！!！!！!!！',f_lr)
         #pdb.set_trace()
-
+        """
+        f_hr : 图片完整路径
+        filename : 图片文件名称（不包含文件后缀）
+        返回的是文件名称而不是文件路径
+        """
         filename, _ = os.path.splitext(os.path.basename(f_hr))
         if self.args.ext == 'img' or self.benchmark:
             hr = imageio.imread(f_hr)

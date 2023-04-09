@@ -3,6 +3,7 @@ import argparse
 import cv2
 import numpy as np
 from scipy.ndimage import zoom
+from src.utility import get_3d
 
 
 # parse args
@@ -367,11 +368,7 @@ def bi_dat_upsampling_x2():
         print(f"after resize shape:{np.shape(sr_image_2x)}")
         sr_image_2x.tofile(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext))
 
-
 def bi_dat_downsampling_x2_3d():
-    nxs = [616, 284, 494]
-    nys = [484, 410, 614]
-    nzs = [718, 722, 752]
     print("\nbi_dat_downsampling_x2_3d")
     hr_image_dir = os.path.join(args.data_dir, 'HR')
     lr_image_dir = os.path.join(args.data_dir, 'LR', "X2")
@@ -385,15 +382,7 @@ def bi_dat_downsampling_x2_3d():
         if not filename.endswith(supported_img_formats):
             continue
         # 确定三维
-        if filename.split('_')[1] == '07':
-            idx = 0
-        elif filename.split('_')[1] == '35':
-            idx = 1
-        elif filename.split('_')[1] == '47':
-            idx = 2
-        nx = nxs[idx]
-        ny = nys[idx]
-        nz = nzs[idx]
+        nx, ny, nz = get_3d(os.path.splitext(filename)[0])
         # 获取图片
         hr_img = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
         hr_img = hr_img.reshape(nx, ny, nz)
@@ -414,9 +403,6 @@ def bi_dat_downsampling_x2_3d():
         lr_img.tofile(os.path.join(lr_image_dir, filename))
 
 def bi_dat_upsampling_x2_3d():
-    nxs = [616, 284, 494]
-    nys = [484, 410, 614]
-    nzs = [718, 722, 752]
     print("\nbi_dat_upsampling_x2_3d")
     sr_image_dir = os.path.join(args.data_dir, 'SR', 'X2')
     lr_image_dir = os.path.join(args.data_dir, 'LR', 'X2')
@@ -431,15 +417,7 @@ def bi_dat_upsampling_x2_3d():
         if not filename.endswith(supported_img_formats):
             continue
         # 确定三维
-        if filename.split('_')[1] == '07':
-            idx = 0
-        elif filename.split('_')[1] == '35':
-            idx = 1
-        elif filename.split('_')[1] == '47':
-            idx = 2
-        nx = nxs[idx]
-        ny = nys[idx]
-        nz = nzs[idx]
+        nx, ny, nz = get_3d(os.path.splitext(filename)[0])
         # 获取图片
         lr_img = np.fromfile(os.path.join(lr_image_dir, filename), dtype=np.uint8)
         lr_img = lr_img.reshape(nx//2, ny//2, nz//2)
@@ -455,8 +433,8 @@ def bi_dat_upsampling_x2_3d():
 
 if __name__ == '__main__':
     # 只需要提供文件夹路径
-    args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D'
-    # bi_dat_downsampling_x2_3d()
+    args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\temp'
+    bi_dat_downsampling_x2_3d()
     bi_dat_upsampling_x2_3d()
 
 

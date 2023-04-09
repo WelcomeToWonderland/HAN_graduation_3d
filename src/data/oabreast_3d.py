@@ -4,41 +4,12 @@ import numpy as np
 from data import common
 import random
 import glob
+from utility import get_3d
 
 class OABreast(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
         print('Making dataset oabreast...')
-        nxs = [616, 284, 494,
-               616, 284, 494,
-               616, 284, 494]
-        nys = [484, 410, 614,
-               484, 410, 614,
-               484, 410, 614]
-        """
-        original
-        train
-        test
-        """
-        nzs = [719, 722, 752,
-               319, 322, 352,
-               400, 400, 400]
-        if name.split('_')[1] == '07':
-            idx = 0
-        elif name.split('_')[1] == '35':
-            idx = 1
-        elif name.split('_')[1] == '47':
-            idx = 2
-        if name.endswith('train'):
-            multiple = 1
-        elif name.endswith('test'):
-            multiple = 2
-        else:
-            multiple = 0
-        self.nx = nxs[3 * multiple + idx]
-        self.ny = nys[3 * multiple + idx]
-        self.nz = nzs[3 * multiple + idx]
-
         self.args = args
         self.name = name
         self.train = train
@@ -49,7 +20,6 @@ class OABreast(data.Dataset):
         self.benchmark = benchmark
         self.scale = args.scale
         self.idx_scale = 0
-
 
         self._set_filesystem(args.dir_data)
 
@@ -78,7 +48,7 @@ class OABreast(data.Dataset):
             数据集个数*本数据集中数据数量，但是不同数据集中的数据数量是不同的
             那这样的话，不同数据集对应dataset类求出的n_images是不同的，求出的repeat也是不同的
             """
-            n_images = len(args.data_train) * np.shape(self.images_hr)[2]
+            n_images = len(args.data_train) * len(self.images_hr)
             if n_images == 0:
                 self.repeat = 0
             else:
@@ -98,7 +68,7 @@ class OABreast(data.Dataset):
         '''
         self.apath = os.path.join(dir_data, self.name)
         scale_dir = f'X{self.scale[0]}'
-        self.dir_lr = os.path.join(dir_data, self.name, 'LR',scale_dir)
+        self.dir_lr = os.path.join(dir_data, self.name, 'LR')
         self.dir_hr = os.path.join(dir_data, self.name, 'HR')
         self.ext = '.DAT'
 
@@ -108,62 +78,60 @@ class OABreast(data.Dataset):
         获取所有hr和lr文件名
         :return:
         '''
+        """
+        获取hr文件名
+        根据hr文件名，获取不同scale的对应lr文件名
+        直接获取文件夹下所有lr文件名，存在hr与lr不配对的风险
+        """
         names_hr = sorted(
-            glob.glob(os.path.join(self.dir_hr, '*' + self.ext[0]))
+            glob.glob(os.path.join(self.dir_hr, '*' + self.ext))
         )
-        list_hr = []
-        # 读取不同scale的lr文件
-        list_lr = [[] for _ in self.scale]
-
-        for entry in os.scandir(self.dir_hr):
-            filename = os.path.splitext(entry.name)[0]
-            list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
-            list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
-        for entry in os.scandir(self.dir_lr):
-            filename = os.path.splitext(entry.name)[0]
+        # 为不同scale，建立对应lr文件名存储list
+        names_lr = [[] for _ in self.scale]
+        for f in names_hr:
+            f = os.path.basename(f)
             for si, s in enumerate(self.scale):
-                list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
-                list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
-
-        return list_hr, list_lr
+                names_lr[si].append(os.path.join(
+                    self.dir_lr, 'X{}/{}'.format(s, f)
+                ))
+        return names_hr, names_lr
 
     # 函数组-2
     def __getitem__(self, idx):
         '''
-        函数修改，不再返回filename，改成返回idx
+        按顺序返回：lr， hr， filename
         :param idx:
         :return:
         '''
-        lr, hr = self._load_file(idx)
+        lr, hr, filename = self._load_file(idx)
         pair = self.get_patch(lr, hr)
-        pair = common.set_channel(*pair, n_channels=self.args.n_colors)
-        pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range)
-        return pair_t[0], pair_t[1], idx
+        # pair = common.set_channel(*pair, n_channels=self.args.n_colors)
+        pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range, is_3d=self.args.is_3d)
+        return pair_t[0], pair_t[1], filename
 
     def _load_file(self, idx):
         '''
-        函数修改：不再是加载图片（已经加载在list中），而是将图片从list中取出
-        同时在最后增加一个维度（x，y 到 x, y, 1），相当于单通道图片
+        加载图片
         :param idx:
         :return:
         '''
-        idx = self._get_index(idx)
-        # hr = self.images_hr[:, :, idx]
-        # lr = self.images_lr[self.idx_scale][:, :, idx]
-
-        # 第一、二维度，长宽不变，增加第三维度，将二维图像转化为三维图像
-        hr = self.images_hr[:, :, idx]
-        hr = np.expand_dims(hr, 2)
-        lr = self.images_lr[self.idx_scale][:, :, idx]
-        lr = np.expand_dims(lr, 2)
-
-        return lr, hr
-
-    def _get_index(self, idx):
-        if self.train:
-            return idx % np.shape(self.images_hr)[2]
-        else:
-            return idx
+        # 获取文件名
+        f_hr = self.images_hr[idx]
+        f_lr = self.images_lr[self.idx_scale][idx]
+        # 确定图片三维
+        filename = os.path.splitext(os.path.basename(f_hr))[0]
+        nx, ny, nz = get_3d(filename)
+        # 加载文件
+        scale = self.scale[self.idx_scale]
+        hr = np.fromfile(f_hr, dtype=np.uint8)
+        hr = hr.reshape(nx, ny, nz)
+        lr = np.fromfile(f_lr, dtype=np.uint8)
+        lr = lr.reshape(nx//scale, ny//scale, nz//scale)
+        # 增加通道维度
+        lr = np.expand_dims(lr, axis=3) if lr.ndim == 3 else lr
+        hr = np.expand_dims(hr, axis=3) if hr.ndim == 3 else hr
+        # 返回文件，以及文件名称
+        return lr, hr, filename
 
     def get_patch(self, lr, hr):
         """
@@ -175,7 +143,7 @@ class OABreast(data.Dataset):
         """
         scale = self.scale[self.idx_scale]
         if self.train:
-            lr, hr = common.get_patch(
+            lr, hr = common.get_patch_3d(
                 lr, hr,
                 patch_size=self.args.patch_size,
                 scale=scale,
@@ -185,14 +153,13 @@ class OABreast(data.Dataset):
             #print(hr.shape)
             if not self.args.no_augment: lr, hr = common.augment(lr, hr)
         else:
-            ih, iw = lr.shape[:2]
-            hr = hr[0:ih * scale, 0:iw * scale]
+            ih, iw, id = lr.shape[:3]
+            hr = hr[0:ih * scale, 0:iw * scale, 0:id*scale]
 
         return lr, hr
 
     # 函数-3
     def __len__(se1f):
-
         """
         if se1f.train:
             return np.shape(se1f.images_hr)[2] * se1f.repeat
@@ -202,7 +169,7 @@ class OABreast(data.Dataset):
         不再使用args.every_test属性，对应sef.repeat属性
         :return:
         """
-        return np.shape(se1f.images_hr)[2]
+        return len(se1f.images_hr)
 
     # 函数-4
     def set_scale(self, idx_scale):
@@ -213,4 +180,3 @@ class OABreast(data.Dataset):
             self.idx_scale = idx_scale
         else:
             self.idx_scale = random.randint(0, len(self.scale) - 1)
-

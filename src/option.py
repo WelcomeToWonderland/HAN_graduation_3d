@@ -20,13 +20,10 @@ parser.add_argument('--seed', type=int, default=1,
 
 # Data specifications
 # 我的添加：dat文件
-parser.add_argument('--dat', action='store_true')
-# parser.add_argument('--nx_train', type=int, help='3 dimention of hr of train')
-# parser.add_argument('--ny_train', type=int)
-# parser.add_argument('--nz_train', type=int)
-parser.add_argument('--nx_test', type=int, help='3 dimention of hr of test')
-parser.add_argument('--ny_test', type=int)
-parser.add_argument('--nz_test', type=int)
+# parser.add_argument('--dat', action='store_true')
+# oabreats
+parser.add_argument('--is_2d', action='store_true')
+parser.add_argument('--is_3d', action='store_true')
 # 数据集根目录
 parser.add_argument('--dir_data', type=str, default='/media/zrh/备份/AIM/X4',
                     help='dataset directory')
@@ -53,6 +50,12 @@ parser.add_argument('--patch_size', type=int, default=192,
                     help='output patch size')
 parser.add_argument('--rgb_range', type=int, default=255,
                     help='maximum value of RGB')
+"""
+n_colors 就是图像的通道数
+在data文件夹下的common.set_channel函数有涉及
+输入模型的像素矩阵，需要通道维度
+单通道图像，需要手动添加通道维度
+"""
 parser.add_argument('--n_colors', type=int, default=3,
                     help='number of color channels to use')
 parser.add_argument('--chop', action='store_true',
@@ -193,33 +196,4 @@ for arg in vars(args):
     elif vars(args)[arg] == 'False':
         vars(args)[arg] = False
 
-if args.dat:
-    nxs = [616, 284, 494,
-           616, 284, 494,
-           616, 284, 494]
-    nys = [484, 410, 614,
-           484, 410, 614,
-           484, 410, 614]
-    """
-    original
-    train
-    test
-    """
-    nzs = [719, 722, 752,
-           319, 322, 352,
-           400, 400, 400]
-    if args.data_test[0].split('_')[1] == '07':
-        idx = 0
-    elif args.data_test[0].split('_')[1] == '35':
-        idx = 1
-    elif args.data_test[0].split('_')[1] == '47':
-        idx = 2
-    if args.data_test[0].endswith('train'):
-        multiple = 1
-    elif args.data_test[0].endswith('test'):
-        multiple = 2
-    else:
-        multiple = 0
-    args.nx_test = nxs[3 * multiple + idx]
-    args.ny_test = nys[3 * multiple + idx]
-    args.nz_test = nzs[3 * multiple + idx]
+

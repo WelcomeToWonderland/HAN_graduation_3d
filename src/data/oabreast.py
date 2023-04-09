@@ -144,14 +144,8 @@ class OABreast(data.Dataset):
         :return:
         '''
         idx = self._get_index(idx)
-        # hr = self.images_hr[:, :, idx]
-        # lr = self.images_lr[self.idx_scale][:, :, idx]
-
-        # 第一、二维度，长宽不变，增加第三维度，将二维图像转化为三维图像
         hr = self.images_hr[:, :, idx]
-        hr = np.expand_dims(hr, 2)
         lr = self.images_lr[self.idx_scale][:, :, idx]
-        lr = np.expand_dims(lr, 2)
 
         return lr, hr
 

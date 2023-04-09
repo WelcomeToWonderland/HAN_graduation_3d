@@ -25,7 +25,14 @@ class Model(nn.Module):
         self.n_GPUs = args.n_GPUs
         self.save_models = args.save_models
 
-        module = import_module('model.' + args.model.lower())
+        if args.model.lower() == 'han':
+            if args.is_3d:
+                module = import_module('model.han_3d')
+            else:
+                module = import_module('model.han')
+        else:
+            module = import_module('model.' + args.model.lower())
+
         """
         Modle对象有model属性
         Model对象有forword函数

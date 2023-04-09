@@ -71,7 +71,6 @@ class Trainer():
             HAN模型没有set_scale函数，没有用
             """
             sr = self.model(lr, 0)
-            sr = utility.quantize(sr, self.args.rgb_range)
             loss = self.loss(sr, hr)
             """
             反向传播
@@ -129,9 +128,14 @@ class Trainer():
         for idx_data, d in enumerate(self.loader_test):
             for idx_scale, scale in enumerate(self.scale):
                 d.dataset.set_scale(idx_scale)
-                # oabreast数据库使用dat存储
-                if self.args.dat:
-                    sr_dat = np.zeros((self.args.nx_test, self.args.ny_test, self.args.nz_test), dtype=np.uint8)
+                # oabreast_2d
+                if self.args.is_2d:
+                    """
+                    testset中只存放了一份数据
+                    根据data_test，确定三维
+                    """
+                    nx, ny, nz = utility.get_3d(self.args.data_test)
+                    sr_dat = np.zeros((nx, ny, nz), dtype=np.uint8)
                 # psnr、ssim数据记录
                 calc_psnr_mean = 0
                 psnr_mean = 0
@@ -142,10 +146,22 @@ class Trainer():
                 for lr, hr, filename in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
                     sr = self.model(lr, idx_scale)
+                    """
+                    将连续数据，离散化到rgb_range的范围，因此可以进行存储
+                    """
                     sr = utility.quantize(sr, self.args.rgb_range)
 
+                    """
+                    为什么是filename[0]，而不是filename
+                    dataset的__getitem__函数，返回的是字符串，而不是列表
+                    进行测试
+                    print(f"type(filename) : {type(filename)}")
+                    print(f"type(filename[0]) : {type(filename[0])}")
+                    print(f"filename : {filename}")
+                    print(f"filename[0] : {filename[0]}")
+                    """
                     if self.args.save_results:
-                        if self.args.dat:
+                        if self.args.is_2d:
                             sr_dat[:, :, filename[0]] = sr.cpu().numpy()[0, 0, :, :]
                         else:
                             save_list = [sr]
@@ -187,7 +203,7 @@ class Trainer():
                 # self.ckp.writer.add_scalar(r'psnr_mean', psnr_mean.item(), epoch + 1)
                 # self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
                 if self.args.save_results:
-                    if self.args.dat:
+                    if self.args.is_2d:
                         self.ckp.save_results_dat(d, sr_dat, scale)
                 self.ckp.log[-1, idx_data, idx_scale] /= len(d)
                 best = self.ckp.log.max(0)

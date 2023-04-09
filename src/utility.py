@@ -224,6 +224,10 @@ class checkpoint():
         :return:
         """
         if self.args.save_results:
+            """
+            凭借filename，生成完成sr文件保存路径
+            没有文件后缀名
+            """
             filename = self.get_path(
                 'results-{}'.format(dataset.dataset.name),
                 '{}_x{}_'.format(filename, scale)
@@ -233,7 +237,16 @@ class checkpoint():
             for v, p in zip(save_list, postfix):
                 normalized = v[0].mul(255 / self.args.rgb_range)
                 tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
-                self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
+                """
+                添加文件后缀名
+                """
+                if self.args.is_3d:
+                    """
+                    oabreast 2d切片，保存处理结果在另一个函数中
+                    """
+                    self.queue.put(('{}{}.DAT'.format(filename, p), tensor_cpu))
+                else:
+                    self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
 
     def save_results_dat(self, dataset, sr_dat, scale):
         if self.args.save_results:
@@ -245,20 +258,37 @@ class checkpoint():
 
 def quantize(img, rgb_range):
     """
+    量化：将连续的数据，离散化到0，~~，rgb_range的范围内
     :param img:
     :param rgb_range:
     :return:
     """
-    """
-        pixel_range = 255 / rgb_range 这是整数，不会有误差吗
-    """
-    pixel_range = 255.0 / rgb_range
+    pixel_range = 255 / rgb_range
     """
     clamp（l, r）：将变量限制在l~r之间
     round：四舍五入的保留小数，默认保留小数位为0，相当于取整；输入数据与输出数据的类型相同
     """
     # return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
     return img.mul(pixel_range).clamp(0, 255).div(pixel_range).round()
+
+def normalization(img, rgb_range):
+    """
+    将数据范围为rgb_range的数据，归一化到0~1内
+    img：tensor
+    :param img:
+    :param rgb_range:
+    :return:
+    """
+    return img.div(rgb_range)
+
+def antiNormalization(img, rgb_range):
+    """
+    将取值范围为0~1的数据，反归一化到取值范围rgb_range
+    :param img:
+    :param rgb_range:
+    :return:
+    """
+    return img.mul(rgb_range)
 
 def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     # tensor.nelement() 获取tensor的元素数量
@@ -289,9 +319,6 @@ def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     print(f"calc_psnr : {-10 * math.log10(mse)}")
 
     return -10 * math.log10(mse)
-
-# def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
-#     return peak_signal_noise_ratio(hr, sr, data_range=rgb_range)
 
 def make_optimizer(args, target):
     '''
@@ -358,3 +385,36 @@ def make_optimizer(args, target):
     optimizer._register_scheduler(scheduler_class, **kwargs_scheduler)
     return optimizer
 
+def get_3d(filename):
+        nxs = [616, 284, 494,
+               616, 284, 494,
+               616, 284, 494]
+        nys = [484, 410, 614,
+               484, 410, 614,
+               484, 410, 614]
+        """
+        original
+        train
+        test
+        """
+        nzs = [718, 722, 752,
+               318, 322, 352,
+               400, 400, 400]
+        idx = None
+        multiple = None
+        if filename.split('_')[1] == '07':
+            idx = 0
+        elif filename.split('_')[1] == '35':
+            idx = 1
+        elif filename.split('_')[1] == '47':
+            idx = 2
+        if filename.endswith('train'):
+            multiple = 1
+        elif filename.endswith('test'):
+            multiple = 2
+        else:
+            multiple = 0
+        nx = nxs[3 * multiple + idx]
+        ny = nys[3 * multiple + idx]
+        nz = nzs[3 * multiple + idx]
+        return nx, ny, nz

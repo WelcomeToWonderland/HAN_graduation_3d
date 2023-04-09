@@ -5,8 +5,10 @@ import os
 import datetime
 import torch
 
-
-t = torch.tensor([1, 2])
-l = [0, 1, 2, 3]
-
-print(l[t])
+t1 = 10.3
+t2 = 3.0
+temp = t1 // t2
+print(type(t1))
+print(type(t2))
+print(type(temp))
+print(temp)

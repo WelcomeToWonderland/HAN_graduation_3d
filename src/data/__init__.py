@@ -39,7 +39,10 @@ class Data:
                 if module_name in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
                                    'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
                                    'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
-                    m = import_module('data.oabreast')
+                    if args.is_3d :
+                        m = import_module('data.oabreast_3d')
+                    else:
+                        m = import_module('data.oabreast')
                     datasets.append(getattr(m, 'OABreast')(args, name=d))
                 # 其他数据集
                 else:
@@ -67,7 +70,11 @@ class Data:
             elif d in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
                        'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
                        'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
-                m = import_module('data.oabreast')
+
+                if args.is_3d:
+                    m = import_module('data.oabreast_3d')
+                else:
+                    m = import_module('data.oabreast')
                 testset = getattr(m, 'OABreast')(args, train=False, name=d)
             else:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
