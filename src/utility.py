@@ -407,9 +407,6 @@ def make_optimizer(args, target, cpk):
     
     optimizer = CustomOptimizer(trainable, **kwargs_optimizer)
     optimizer._register_scheduler(scheduler_class, **kwargs_scheduler)
-    # 加载load中的优化器参数
-    if args.load != '':
-        optimizer.load(load_dir=cpk.dir, epoch=len(cpk.log))
     return optimizer
 
 def get_3d(filename):

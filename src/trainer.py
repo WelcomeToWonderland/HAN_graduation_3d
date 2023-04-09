@@ -25,9 +25,9 @@ class Trainer():
         self.loss = my_loss
         self.optimizer = utility.make_optimizer(args, self.model, ckp)
 
+        # 加载load中的优化器参数
         if self.args.load != '':
             self.optimizer.load(ckp.dir, epoch=len(ckp.log))
-            #print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
 
         self.error_last = 1e8
 

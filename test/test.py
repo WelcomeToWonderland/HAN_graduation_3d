@@ -6,6 +6,3 @@ import datetime
 import torch
 import re
 
-t = ''
-if not t:
-    print("yes")
