@@ -11,6 +11,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import argparse
 import torch.nn as nn
+from src.utility import get_3d
+import re
 
 # parse args
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
@@ -101,7 +103,11 @@ def psnr_ssim_img():
 
 def psnr_ssim_dat():
     print('\npsnr_ssim_dat')
-    dataset = args.dataset
+    # 获取dataset名
+    dataset = re.split(r'[\\|/]', args.hr_path)[-3]
+    # 获取三维
+    nx, ny, nz = get_3d(dataset)
+    # 创建文件夹
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
     log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
@@ -110,13 +116,12 @@ def psnr_ssim_dat():
     # log
     log_file = open(log_dir + r"/log.txt", 'x')
     loss_function = nn.MSELoss()
-
     print(args.sr_path)
     print(args.hr_path)
     sr_dat = np.fromfile(args.sr_path, dtype=np.uint8)
-    sr_dat = sr_dat.reshape(args.nx, args.ny, args.nz)
+    sr_dat = sr_dat.reshape(nx, ny, nz)
     hr_dat = np.fromfile(args.hr_path, dtype=np.uint8)
-    hr_dat = hr_dat.reshape(args.nx, args.ny, args.nz)
+    hr_dat = hr_dat.reshape(nx, ny, nz)
 
 
     psnr = []
@@ -125,7 +130,7 @@ def psnr_ssim_dat():
     psnr_mean = 0.0
     ssim_mean = 0.0
     loss_mean = 0.0
-    for idx in range(args.nz):
+    for idx in range(nz):
         psnr_temp = peak_signal_noise_ratio(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4)
         ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4, multichannel=False)
         loss_temp = loss_function(torch.from_numpy(hr_dat[:, :, idx]).float(), torch.from_numpy(sr_dat[:, :, idx]).float())
@@ -146,9 +151,9 @@ def psnr_ssim_dat():
         writer.add_scalar(r'ssim', ssim_temp, idx+1)
         writer.add_scalar(r'loss', loss_temp, idx+1)
 
-    psnr_mean /= args.nz
-    ssim_mean /= args.nz
-    loss_mean /= args.nz
+    psnr_mean /= nz
+    ssim_mean /= nz
+    loss_mean /= nz
     log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}, loss_mean : {loss_mean}"
     log_file.write(log)
     print(log)
@@ -308,41 +313,16 @@ def psnr_ssim_dat_3d():
     plt.close(fig)
 
 if __name__ == '__main__':
-    args.dataset = 'OABreast_3d'
-    args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
-    psnr_ssim_dat_3d()
+    # args.dataset = 'OABreast_3d'
+    # args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
+    # psnr_ssim_dat_3d()
 
-    # args.dataset = r'Neg_07_Left_test'
-    # # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
-    # # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
-    # args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
-    # args.sr_path = r'D:\workspace\HAN_for_test\experiment\2023-04-06-19%3A53%3A58HANx2_oabreast\results-Neg_07_Left_test\MergedPhantom_x2_SR.DAT'
-    # nxs = [616, 284, 494]
-    # nys = [484, 410, 614]
-    # """
-    # original
-    # train
-    # test
-    # """
-    # nzs = [719, 722, 752,
-    #        319, 322, 352,
-    #        400, 400, 400]
-    # if args.dataset.split('_')[1] == '07':
-    #     idx = 0
-    # elif args.dataset.split('_')[1] == '35':
-    #     idx = 1
-    # elif args.dataset.split('_')[1] == '47':
-    #     idx = 2
-    # if args.dataset.endswith('train'):
-    #     multiple = 1
-    # elif args.dataset.endswith('test'):
-    #     multiple = 2
-    # else:
-    #     multiple = 0
-    # args.nx = nxs[idx]
-    # args.ny = nys[idx]
-    # args.nz = nzs[3 * multiple + idx]
-    # psnr_ssim_dat()
+    args.dataset = r'Neg_07_Left_test'
+    # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
+    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
+    args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
+    args.sr_path = r'D:\workspace\HAN_3d_running\experiment\HANx2_oabreast_2d\results-Neg_07_Left_test\Neg_07_Left_test_x2_SR.DAT'
+    psnr_ssim_dat()
 
 
     # 所有dat文件
