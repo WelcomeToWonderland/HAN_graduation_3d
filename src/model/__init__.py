@@ -42,6 +42,9 @@ class Model(nn.Module):
         if args.precision == 'half':
             self.model.half()
 
+        """
+        load函数一定会执行
+        """
         self.load(
             ckp.get_path('model'),
             pre_train=args.pre_train,
@@ -57,6 +60,10 @@ class Model(nn.Module):
         print(self.model, file=ckp.log_file)
 
     def load(self, apath, pre_train='', resume=-1, cpu=False):
+        """
+        option.py中，resume默认0
+        这里的resume默认-1，作用不大
+        """
         load_from = None
         kwargs = {}
         if cpu:
@@ -78,6 +85,12 @@ class Model(nn.Module):
                     **kwargs
                 )
             elif pre_train:
+                """
+                重新开始训练的时候
+                resume=0
+                pre_train=’‘
+                这样才不会报错
+                """
                 print('Load the model from {}'.format(pre_train))
                 load_from = torch.load(pre_train, **kwargs)
         else:

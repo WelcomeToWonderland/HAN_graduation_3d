@@ -33,9 +33,7 @@ class Trainer():
 
     def train(self):
         self.loss.step()
-        #print(self.optimizer.get_last_epoch())
         epoch = self.optimizer.get_last_epoch() + 1
-        #pdb.set_trace
         lr = self.optimizer.get_lr()
         """
         往log.txt中写入内容
@@ -111,8 +109,12 @@ class Trainer():
     def test(self):
         torch.set_grad_enabled(False)
 
+        """
+        epoch 
+        经过trian后，epoch+1
+        现在获取的epoch，已经是本轮epoch的实际数值，不需要+1
+        """
         epoch = self.optimizer.get_last_epoch()
-        #print(epoch)
         self.ckp.write_log('\nEvaluation:')
         self.ckp.add_log(
             torch.zeros(1, len(self.loader_test), len(self.scale))
@@ -137,8 +139,6 @@ class Trainer():
                     nx, ny, nz = utility.get_3d(self.args.data_test[0])
                     sr_dat = np.zeros((nx, ny, nz), dtype=np.uint8)
                 # psnr、ssim数据记录
-                calc_psnr_mean = 0
-                psnr_mean = 0
                 ssim_mean = 0
                 # 计数
                 num = 0
@@ -164,48 +164,41 @@ class Trainer():
                         if self.args.is_2d:
                             sr_dat[:, :, filename[0]] = sr.cpu().numpy()[0, 0, :, :]
                         else:
+                            """
+                            png sr的保存，由线程完成，将sr信息，加入queue中，线程从queue中取出sr信息，完成sr保存
+                            """
                             save_list = [sr]
                             if self.args.save_gt:
                                 save_list.extend([lr, hr])
                             self.ckp.save_results(d, filename[0], save_list, scale)
 
-                    # png图片dataset保存输出
-                    # save_list = [sr]
-                    # if self.args.save_gt:
-                    #     save_list.extend([lr, hr])
-                    # if self.args.save_results:
-                    #     self.ckp.save_results(d, filename[0], save_list, scale)
-
+                    """
+                    注意“坐标”
+                    """
                     self.ckp.log[-1, idx_data, idx_scale] += utility.calc_psnr(
                         sr, hr, scale, self.args.rgb_range, dataset=d
                     )
 
                     #tensorboard
-                    num += 1
-                    calc_psnr = utility.calc_psnr(sr, hr, scale, self.args.rgb_range, dataset=d)
-                    calc_psnr_mean += calc_psnr
                     # sr = sr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
                     # hr = hr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
-                    # psnr = peak_signal_noise_ratio(hr, sr, data_range=5)
-                    # print(f"psnr: {psnr}")
-                    # psnr_mean += psnr
                     # ssim = structural_similarity(hr, sr)
                     # print(f"ssim: {ssim}")
                     # ssim_mean += ssim
-                    # self.ckp.writer.add_scalar(r'calc_psnr', calc_psnr, (epoch+1)*len(d) + num)
-                    # self.ckp.writer.add_scalar(r'psnr', psnr.item(), (epoch+1)*len(d) + num)
                     # self.ckp.writer.add_scalar(r'ssim', ssim.item(), (epoch+1)*len(d) + num)
                 # tensorboard
-                calc_psnr_mean /= len(d)
-                # psnr_mean /= len(d)
                 # ssim_mean /= len(d)
-                self.ckp.writer.add_scalar(r'calc_psnr_mean', calc_psnr_mean, epoch + 1)
-                # self.ckp.writer.add_scalar(r'psnr_mean', psnr_mean.item(), epoch + 1)
                 # self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
                 if self.args.save_results:
                     if self.args.is_2d:
                         self.ckp.save_results_dat(d, sr_dat, scale)
                 self.ckp.log[-1, idx_data, idx_scale] /= len(d)
+                """
+                best
+                决定是否保存model参数
+                max(0) 沿着第一个维度，寻找最大值
+                返回最大值，以及最大值索引(索引从0开始计数)
+                """
                 best = self.ckp.log.max(0)
                 self.ckp.write_log(
                     '[{} x{}]\tPSNR: {:.3f} (Best: {:.3f} @epoch {})'.format(
@@ -213,7 +206,7 @@ class Trainer():
                         scale,
                         self.ckp.log[-1, idx_data, idx_scale],
                         best[0][idx_data, idx_scale],
-                        best[1][idx_data, idx_scale]
+                        best[1][idx_data, idx_scale]+1
                     )
                 )
 
@@ -225,7 +218,12 @@ class Trainer():
 
         # 保存test效果最好的模型
         if not self.args.test_only:
-            self.ckp.save(self, epoch, is_best=(best[1][0, 0] == epoch))
+            """
+            best[1][0, 0] == epoch
+            这里之所以是epoch，而不是epoch+1
+            是因为，索引从0开始计数
+            """
+            self.ckp.save(self, epoch, is_best=(best[1][0, 0]+1 == epoch))
 
         self.ckp.write_log(
             'Total: {:.2f}s\n'.format(timer_test.toc()), refresh=True

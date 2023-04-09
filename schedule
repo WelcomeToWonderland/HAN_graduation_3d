@@ -20,3 +20,6 @@
 oabreast图像【height, width, depth】,是当作单通道图像
 
 没有通道维度，需要添加通道维度吗
+
+
+/root/miniconda3/bin/python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --load HANx2_oabreast_2d --resume -1 --n_GPUs 1 --template HAN --epochs 9 --scale 2 --save_suffix HANx2_oabreast_2d --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/OABreast --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test --is_2d --rgb_range 4 --n_colors 1

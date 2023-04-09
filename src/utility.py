@@ -171,8 +171,11 @@ class checkpoint():
 
     # 函数组3
     def add_log(self, log):
-        # 拼接log（psnr）：将传入的log与ckp中log拼接
-        # log(psnr)最终由skp.save函数保存
+        """
+        准备工作：执行在本轮test开始，为记录psnr，准备空间
+        log ：torch.zeros(1, len(self.loader_test), len(self.scale))
+        oabreast 2d 实际形状 【1， 1， 1】
+        """
         self.log = torch.cat([self.log, log])
 
     # 函数组4
@@ -305,7 +308,6 @@ def antiNormalization(img, rgb_range):
 def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     # tensor.nelement() 获取tensor的元素数量
     if hr.nelement() == 1: return 0
-
     """
     shave
     修剪边缘像素

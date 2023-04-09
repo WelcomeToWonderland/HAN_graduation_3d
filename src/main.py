@@ -10,6 +10,8 @@ from importlib import import_module
 
 gc.collect()
 torch.cuda.empty_cache()
+import sys
+sys.path.append('/root/autodl-tmp/project')
 
 
 """
