@@ -126,6 +126,8 @@ class Model(nn.Module):
             else:
                 """
                 调用model.forward函数
+                
+                没有多gpu的并行运算？
                 """
                 return self.model(x)
         else:
@@ -146,10 +148,16 @@ class Model(nn.Module):
 
     def forward_chop(self, x, shave=10, min_size=160000):
         scale = self.scale[self.idx_scale]
+        """
+        使用到了n_GPUs, 但是没有设计多gpu的并行运算
+        """
         n_GPUs = min(self.n_GPUs, 4)
         b, c, h, w = x.size()
         h_half, w_half = h // 2, w // 2
         h_size, w_size = h_half + shave, w_half + shave
+        """
+        将lr分成了四块， 获得了lr_list
+        """
         lr_list = [
             x[:, :, 0:h_size, 0:w_size],
             x[:, :, 0:h_size, (w - w_size):w],
@@ -157,12 +165,30 @@ class Model(nn.Module):
             x[:, :, (h - h_size):h, (w - w_size):w]]
 
         if w_size * h_size < min_size:
+            """
+            一次性处理n_GPUs块
+            """
             sr_list = []
             for i in range(0, 4, n_GPUs):
+                """
+                lr_list[i:(i + n_GPUs)]
+                当i + n_GPUs大于索引右边界时，默认取到右边界，而不会有其他错误
+                
+                dim=0
+                在第一个维度，也就是batch size，拼接，
+                """
                 lr_batch = torch.cat(lr_list[i:(i + n_GPUs)], dim=0)
                 sr_batch = self.model(lr_batch)
+                """
+                chunk
+                张量方法
+                沿着指定维度，分割成多个块
+                """
                 sr_list.extend(sr_batch.chunk(n_GPUs, dim=0))
         else:
+            """
+            一块块处理
+            """
             sr_list = [
                 self.forward_chop(patch, shave=shave, min_size=min_size) \
                 for patch in lr_list
@@ -173,6 +199,13 @@ class Model(nn.Module):
         h_size, w_size = scale * h_size, scale * w_size
         shave *= scale
 
+        """
+        new
+        张量方法
+        创建与x的dtype和device相同，形状为【b, c, h, w】的新张量
+        
+        取出sr_list中数据，凭借成完整sr，也就是output
+        """
         output = x.new(b, c, h, w)
         output[:, :, 0:h_half, 0:w_half] \
             = sr_list[0][:, :, 0:h_half, 0:w_half]
@@ -188,7 +221,9 @@ class Model(nn.Module):
     def forward_x8(self, *args, forward_function=None):
         def _transform(v, op):
             if self.precision != 'single': v = v.float()
-
+            """
+            对数据v，进行水平翻转，垂直翻转，转置
+            """
             v2np = v.data.cpu().numpy()
             if op == 'v':
                 tfnp = v2np[:, :, :, ::-1].copy()
@@ -202,6 +237,13 @@ class Model(nn.Module):
 
             return ret
 
+        """
+        包括original在内，一共八个数据
+        1
+        1+1
+        2+2
+        4+4
+        """
         list_x = []
         for a in args:
             x = [a]
@@ -209,6 +251,9 @@ class Model(nn.Module):
 
             list_x.append(x)
 
+        """
+        八个lr，对应的sr
+        """
         list_y = []
         for x in zip(*list_x):
             y = forward_function(*x)

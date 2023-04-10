@@ -13,13 +13,8 @@
 4、流程修改：args参数修改，dataset类创建,代码测试
 5、模型修改
 
-想要和师兄交流的问题
-1、直接处理三维图像，三维图像太少
-
-问题
-oabreast图像【height, width, depth】,是当作单通道图像
-
-没有通道维度，需要添加通道维度吗
+需要修改
+1、model init 中的    def forward_chop(self, x, shave=10, min_size=160000):
+2、test加入多pgu的并行运算
 
 
-/root/miniconda3/bin/python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --load HANx2_oabreast_2d --resume -1 --n_GPUs 1 --template HAN --epochs 9 --scale 2 --save_suffix HANx2_oabreast_2d --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/OABreast --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test --is_2d --rgb_range 4 --n_colors 1

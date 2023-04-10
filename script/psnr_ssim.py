@@ -84,8 +84,8 @@ def psnr_ssim_img():
     plt.plot(axis, psnr, label=label)
     plt.legend()
     plt.plot(axis, psnr)
-    plt.xlabel = 'idx'
-    plt.ylabel = 'psnr'
+    plt.xlabel('idx')
+    plt.ylabel('psnr')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
@@ -95,14 +95,18 @@ def psnr_ssim_img():
     plt.title(label)
     plt.plot(axis, ssim, label=label)
     plt.legend()
-    plt.xlabel = 'idx'
-    plt.ylabel = 'ssim'
+    plt.xlabel('idx')
+    plt.ylabel('ssim')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
 
 def psnr_ssim_dat():
     print('\npsnr_ssim_dat')
+    # 判定path是否合理
+    if not os.path.isfile(args.hr_path) or not os.path.isfile(args.sr_path):
+        print(f"file doesn`t exist, function terminates")
+        return
     # 获取dataset名
     dataset = re.split(r'[\\|/]', args.hr_path)[-3]
     # 获取三维
@@ -134,16 +138,12 @@ def psnr_ssim_dat():
         psnr_temp = peak_signal_noise_ratio(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4)
         ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx], data_range=4, multichannel=False)
         loss_temp = loss_function(torch.from_numpy(hr_dat[:, :, idx]).float(), torch.from_numpy(sr_dat[:, :, idx]).float())
-        # print(f"1 : {ssim_temp}")
-        # ssim_temp = structural_similarity(hr_dat[:, :, idx], sr_dat[:, :, idx])
-        # print(f"2 : {ssim_temp}")
         psnr_mean += psnr_temp
         ssim_mean += ssim_temp
         loss_mean += loss_temp
         psnr.append(psnr_temp)
         ssim.append(ssim_temp)
         loss.append(loss_temp)
-        # log = f"ordinal:{idx+1} : psnr:{psnr.item()}, ssim:{ssim.item()}" + '\n'
         log = f"\nordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
         log_file.write(log)
         print(log)
@@ -159,21 +159,21 @@ def psnr_ssim_dat():
     print(log)
     psnr_whole = peak_signal_noise_ratio(hr_dat, sr_dat, data_range=4)
     ssim_whole = structural_similarity(hr_dat, sr_dat, data_range=4, multichannel=True)
-    loss_whole = loss_function(torch.form_numpy(hr_dat).float(), torch.from_numpy(sr_dat).float())
+    loss_whole = loss_function(torch.from_numpy(hr_dat).float(), torch.from_numpy(sr_dat).float())
     log = f"\nthe whole : psnr:{psnr_whole}, ssim:{ssim_whole}, loss:{loss_whole}"
     log_file.write(log)
     print(log)
     log_file.close();
 
-    axis = np.linspace(1, args.nz, args.nz)
+    axis = np.linspace(1, nz, nz)
     label = f"psnr_{dataset}"
     fig = plt.figure()
     plt.title(label)
     plt.plot(axis, psnr, label=label)
     plt.legend()
     plt.plot(axis, psnr)
-    plt.xlabel = 'idx'
-    plt.ylabel = 'psnr'
+    plt.xlabel('idx')
+    plt.ylabel('psnr')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
@@ -183,8 +183,8 @@ def psnr_ssim_dat():
     plt.title(label)
     plt.plot(axis, ssim, label=label)
     plt.legend()
-    plt.xlabel = 'idx'
-    plt.ylabel = 'ssim'
+    plt.xlabel('idx')
+    plt.ylabel('ssim')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
@@ -194,17 +194,14 @@ def psnr_ssim_dat():
     plt.title(label)
     plt.plot(axis, loss, label=label)
     plt.legend()
-    plt.xlabel = 'idx'
-    plt.ylabel = 'loss'
+    plt.xlabel('idx')
+    plt.ylabel('loss')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
 
 def psnr_ssim_dat_3d():
     print('\npsnr_ssim_dat_3d')
-    nxs = [616, 284, 494]
-    nys = [484, 410, 614]
-    nzs = [718, 722, 752]
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
@@ -238,15 +235,7 @@ def psnr_ssim_dat_3d():
             """
             continue
         # 确定三维
-        if hr_filename.split('_')[1] == '07':
-            idx = 0
-        elif hr_filename.split('_')[1] == '35':
-            idx = 1
-        elif hr_filename.split('_')[1] == '47':
-            idx = 2
-        nx = nxs[idx]
-        ny = nys[idx]
-        nz = nzs[idx]
+        nx, ny, nz = get_3d(os.path.splitext(hr_filename)[0])
         # 读取文件
         hr_dat = np.fromfile(os.path.join(hr_dir, hr_filename), dtype=np.uint8)
         hr_dat = hr_dat.reshape(nx, ny, nz)
@@ -284,8 +273,8 @@ def psnr_ssim_dat_3d():
     plt.plot(axis, psnr, label=label)
     plt.legend()
     plt.plot(axis, psnr)
-    plt.xlabel = 'idx'
-    plt.ylabel = 'psnr'
+    plt.xlabel('idx')
+    plt.ylabel('psnr')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
@@ -295,8 +284,8 @@ def psnr_ssim_dat_3d():
     plt.title(label)
     plt.plot(axis, ssim, label=label)
     plt.legend()
-    plt.xlabel = 'idx'
-    plt.ylabel = 'ssim'
+    plt.xlabel('idx')
+    plt.ylabel('ssim')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
@@ -306,47 +295,41 @@ def psnr_ssim_dat_3d():
     plt.title(label)
     plt.plot(axis, loss, label=label)
     plt.legend()
-    plt.xlabel = 'idx'
-    plt.ylabel = 'loss'
+    plt.xlabel('idx')
+    plt.ylabel('loss')
     plt.grid(True)
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
 
 if __name__ == '__main__':
-    # args.dataset = 'OABreast_3d'
-    # args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
-    # psnr_ssim_dat_3d()
+    args.dataset = 'OABreast_3d'
+    args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
+    psnr_ssim_dat_3d()
 
-    args.dataset = r'Neg_07_Left_test'
-    # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
-    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
-    args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
-    args.sr_path = r'D:\workspace\HAN_3d_running\experiment\HANx2_oabreast_2d\results-Neg_07_Left_test\Neg_07_Left_test_x2_SR.DAT'
-    psnr_ssim_dat()
+    # # 某对dat文件
+    # args.dataset = r'Neg_07_Left_test'
+    # args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
+    # args.sr_path = r'D:\workspace\HAN_3d_running\experiment\HANx2_oabreast_2d\results-Neg_07_Left_test\Neg_07_Left_test_x2_SR.DAT'
+    # psnr_ssim_dat()
 
 
-    # 所有dat文件
-    # d1 = 'OABreast_Neg_'
-    # d2 = '_Left'
+    # # 所有dat文件
     # h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    # h2 = r"_Left\HR\MergedPhantom.DAT"
+    # h2 = r"_Left"
+    # h3 = r"\HR\MergedPhantom.DAT"
     # s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    # s2 = r"_Left\SR\X2\MergedPhantom.DAT"
+    # s2 = r"_Left"
+    # s3 = r"\SR\X2\MergedPhantom.DAT"
     # datasets = ['07', '35', '47']
-    # nxs = [616, 284, 494]
-    # nys = [484, 410, 614]
-    # nzs = [719, 722, 752]
-    # for idx in range(3):
-    #     args.dataset = d1 + datasets[idx] + d2
-    #     args.hr_path = h1 + datasets[idx] + h2
-    #     args.sr_path = s1 + datasets[idx] + s2
-    #     args.nx = nxs[idx]
-    #     args.ny = nys[idx]
-    #     args.nz = nzs[idx]
-    #     psnr_ssim_dat()
+    # suffixes = ['', '_train', '_test']
+    # for idx_dataset in range(3):
+    #     for idx_suffix in range(3):
+    #         args.hr_path = h1 + datasets[idx_dataset] + h2 + suffixes[idx_suffix] + h3
+    #         args.sr_path = s1 + datasets[idx_dataset] + s2 + suffixes[idx_suffix] + s3
+    #         psnr_ssim_dat()
 
-    # png图片
-    # args.dataset = 'Manga109'
-    # args.hr_path = 'D:\workspace\dataset\Manga109\clipping\HR'
-    # args.sr_path = 'D:\workspace\dataset\Manga109\clipping\SR\X2'
+    # # png图片
+    # args.dataset = 'Set5'
+    # args.hr_path = r'D:\workspace\dataset\Set5\HR'
+    # args.sr_path = r'D:\workspace\dataset\Set5\pretrain\results-Set5'
     # psnr_ssim_img()

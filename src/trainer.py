@@ -29,6 +29,9 @@ class Trainer():
         if self.args.load != '':
             self.optimizer.load(ckp.dir, epoch=len(ckp.log))
 
+        """
+        待确认
+        """
         self.error_last = 1e8
 
     def train(self):
@@ -103,6 +106,10 @@ class Trainer():
             timer_data.tic()
 
         self.loss.end_log(len(self.loader_train))
+        """
+        作用待确定
+        只有写入，没有读取
+        """
         self.error_last = self.loss.log[-1, -1]
         self.optimizer.schedule()
 
