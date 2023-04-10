@@ -11,6 +11,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import argparse
 import torch.nn as nn
+from src.utility import get_3d
 
 # parse args
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
@@ -197,9 +198,6 @@ def psnr_ssim_dat():
 
 def psnr_ssim_dat_3d():
     print('\npsnr_ssim_dat_3d')
-    nxs = [616, 284, 494]
-    nys = [484, 410, 614]
-    nzs = [718, 722, 752]
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
@@ -216,14 +214,14 @@ def psnr_ssim_dat_3d():
     print(f"sr_dir : {sr_dir}")
     hr_list = sorted(os.listdir(hr_dir))
     sr_list = sorted(os.listdir(sr_dir))
-    psnr = []
-    ssim = []
-    loss = []
+    supported_formats = ('.DAT')
+    length = len(hr_list)
     psnr_mean = 0.0
     ssim_mean = 0.0
     loss_mean = 0.0
-    supported_formats = ('.DAT')
-    length = len(hr_list)
+    psnr = []
+    ssim = []
+    loss = []
     for idx_filename in range(length):
         hr_filename = hr_list[idx_filename]
         sr_filename = sr_list[idx_filename]
@@ -233,15 +231,7 @@ def psnr_ssim_dat_3d():
             """
             continue
         # 确定三维
-        if hr_filename.split('_')[1] == '07':
-            idx = 0
-        elif hr_filename.split('_')[1] == '35':
-            idx = 1
-        elif hr_filename.split('_')[1] == '47':
-            idx = 2
-        nx = nxs[idx]
-        ny = nys[idx]
-        nz = nzs[idx]
+        nx, ny, nz = get_3d(os.path.splitext(hr_filename)[0])
         # 读取文件
         hr_dat = np.fromfile(os.path.join(hr_dir, hr_filename), dtype=np.uint8)
         hr_dat = hr_dat.reshape(nx, ny, nz)
@@ -257,7 +247,7 @@ def psnr_ssim_dat_3d():
         psnr.append(psnr_temp)
         ssim.append(ssim_temp)
         loss.append(loss_temp)
-        log = f"\nordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
+        log = f"\nordinal:{idx_filename+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
         log_file.write(log)
         print(log)
         writer.add_scalar(r'psnr', psnr_temp, idx_filename+1)
