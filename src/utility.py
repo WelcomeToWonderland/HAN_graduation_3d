@@ -52,7 +52,7 @@ class checkpoint():
         self.ok = True
         # log：模型参数文件psnr_log.pt，每个epoch都要记录
         self.log = torch.Tensor()
-        now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+        now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
         # 加载checkpoint
         # load：加载load中的数据，继续上一次训练

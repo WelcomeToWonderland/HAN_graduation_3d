@@ -166,8 +166,6 @@ class HAN(nn.Module):
         rgb_std = (1.0, 1.0, 1.0)
         self.sub_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std)
 
-
-        
         # define head module
         modules_head = [conv(args.n_colors, n_feats, kernel_size)]
 
