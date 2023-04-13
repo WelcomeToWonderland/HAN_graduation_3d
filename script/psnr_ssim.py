@@ -251,7 +251,7 @@ def psnr_ssim_dat_3d():
         psnr.append(psnr_temp)
         ssim.append(ssim_temp)
         loss.append(loss_temp)
-        log = f"\nordinal:{idx+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
+        log = f"\nordinal:{idx_filename+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
         log_file.write(log)
         print(log)
         writer.add_scalar(r'psnr', psnr_temp, idx_filename+1)

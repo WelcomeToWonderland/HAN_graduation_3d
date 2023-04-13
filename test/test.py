@@ -5,6 +5,8 @@ import os
 import datetime
 import torch
 import re
+from src.utility import get_3d
 
-list = [0, 1, 2, 3]
-print(list[2:6])
+hr = np.fromfile(r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_35_Left\HR\MergedPhantom.DAT', dtype=np.uint8)
+nx, ny, nz = get_3d('Neg_35_Left')
+hr.reshape(nx, ny, nz)
