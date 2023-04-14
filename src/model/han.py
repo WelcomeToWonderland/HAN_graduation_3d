@@ -188,6 +188,10 @@ class HAN(nn.Module):
         self.body = nn.Sequential(*modules_body)
         self.csa = CSAM_Module(n_feats)
         self.la = LAM_Module(n_feats)
+        """
+        n_feats*11 : n_rgs=10 + rgs之后的一个卷积层
+        与论文所展示结构略有区别：将最后卷积层的输出，也输入到lam中
+        """
         self.last_conv = nn.Conv2d(n_feats*11, n_feats, 3, 1, 1)
         self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
         self.tail = nn.Sequential(*modules_tail)
@@ -200,13 +204,34 @@ class HAN(nn.Module):
         x = self.head(x)
         res = x
         #pdb.set_trace()
+        """
+        属性_modules以OrderDict的形式，返回所有子模块
+        字典方法items()，返回包含字典中所有（key, value）元组的列表
+        """
         for name, midlayer in self.body._modules.items():
             res = midlayer(res)
             #print(name)
+            """
+            unsqueeze在指定位置，增加一个大小为1的维度，创建源tensor的视图，输入张量与输出张量共享内存，改变输出张量，输入张量也会变化
+            unsqueeze(1) 中的”1“指的是第二个位置
+            batch, channel, height, width, depth
+            新增加的维度1，代表num_midlayer
+            占据了原先的channel通道，在卷积中，当作channel处理
+            
+            存在问题：新增加了一个维度，与其他处理结果形状不同
+            """
             if name=='0':
                 res1 = res.unsqueeze(1)
             else:
+                """
+                在维度1上，拼接两个张量
+                """
                 res1 = torch.cat([res.unsqueeze(1),res1],1)
+        """
+        out1:rgs的输出
+        out2:lam的输出
+        经过self.last_conv的处理
+        """
         #res = self.body(x)
         out1 = res
         #res3 = res.unsqueeze(1)
@@ -214,10 +239,19 @@ class HAN(nn.Module):
         res = self.la(res1)
         out2 = self.last_conv(res)
 
+        """
+        out1：经过rgs和一个卷积层（代码中的这个卷积层好像错放在lam后面）得到输出，将输出输入到csam中，得到out1
+        """
         out1 = self.csa(out1)
         out = torch.cat([out1, out2], 1)
-        res = self.last(out)
+        """
+        ？？？self.last
         
+        """
+        res = self.last(out)
+        """
+        res：long skip、lam和csam的整合结果
+        """
         res += x
         #res = self.csa(res)
 

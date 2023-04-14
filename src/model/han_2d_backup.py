@@ -199,8 +199,9 @@ class HAN(nn.Module):
             #print(name)
             if name=='0':
                 """
-                unsqueeze在指定位置，增加一个大小为1的维度，创建源tensor的视图
+                unsqueeze在指定位置，增加一个大小为1的维度，创建源tensor的视图，输入张量与输出张量共享内存，改变输出张量，输入张量也会变化
                 unsqueeze(1) 中的”1“指的是第二个位置
+                batch, channel, height, width, depth
                 """
                 res1 = res.unsqueeze(1)
             else:
