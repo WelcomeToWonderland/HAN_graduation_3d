@@ -79,6 +79,11 @@ parser.add_argument('--n_feats', type=int, default=128,
 parser.add_argument('--block', type=str, default='BASIC',
                     choices=('BASIC','EctBASIC','EctBOTTLENECK','CAEctBASIC'),
                     help='type of residual blocks')
+"""
+残差网络中
+reduction控制通道数
+res_scaling控制特征图大小，控制残差块中残差分支的比例
+"""
 parser.add_argument('--res_scale', type=float, default=1,
                     help='residual scaling')
 parser.add_argument('--shift_mean', action='store_true',
@@ -101,6 +106,13 @@ parser.add_argument('--RDNconfig', type=str, default='B',
 # Option for Residual channel attention network (RCAN)
 parser.add_argument('--n_resgroups', type=int, default=10,
                     help='number of residual groups')
+"""
+残差网络中
+reduction控制通道数
+res_scale控制特征图大小，控制残差块中残差分支的比例
+
+reduction 最终在CALayer中被使用
+"""
 parser.add_argument('--reduction', type=int, default=16,
                     help='number of feature maps reduction')
 

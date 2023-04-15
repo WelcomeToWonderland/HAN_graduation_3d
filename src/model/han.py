@@ -11,7 +11,16 @@ def make_model(args, parent=False):
 class CALayer(nn.Module):
     def __init__(self, channel, reduction=16):
         super(CALayer, self).__init__()
-        # global average pooling: feature --> point
+        """
+        global average pooling: feature --> point
+        
+        nn.AdaptiveAvgPool2d(1)
+        自适应平均二维池化，不用指定池化核的大小，指定输出的大小，自动反推池化核大小
+        1 是 output size。要求输入二元元组（h，w），仅输入一个数字1，效果就是长宽都是1，（1， 1）
+        
+        池化操作在通道维度上进行
+        在这里，每个通道都有一个计算结果，依据这些结果，计算出每个通道的权重，权重之和为1
+        """
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         # feature channel downscale and upscale --> channel weight
         self.conv_du = nn.Sequential(
@@ -103,7 +112,16 @@ class RCAB(nn.Module):
         bias=True, bn=False, act=nn.ReLU(True), res_scale=1):
 
         super(RCAB, self).__init__()
+        """
+        python内置函数super，返回父类的临时对象
+        super的两个参数：子类名称，子类实例
+        调用父类的初始化函数__init__，继承父类的属性和方法（为什么使用方法，不太理解，方法不是在__init__函数中定义）
+        """
+
         modules_body = []
+        """
+        循环最终效果：卷积+relu+卷积
+        """
         for i in range(2):
             modules_body.append(conv(n_feat, n_feat, kernel_size, bias=bias))
             if bn: modules_body.append(nn.BatchNorm2d(n_feat))
@@ -122,7 +140,11 @@ class RCAB(nn.Module):
 class ResidualGroup(nn.Module):
     def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
         super(ResidualGroup, self).__init__()
-        modules_body = []
+        """
+        限制
+        固定值：act=nn.ReLU(True), res_scale=1
+        输入的这两个值无效
+        """
         modules_body = [
             RCAB(
                 conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
@@ -230,7 +252,8 @@ class HAN(nn.Module):
         """
         out1:rgs的输出
         out2:lam的输出
-        经过self.last_conv的处理
+        经过self.last_conv的处理：输入11通道，输出1通道，整合各层次之间的信息
+        ？？？疑惑：经过self.last_conv整合后，第二个维度，变成1，但依旧不是之前的通道维度（此时在第三个维度），与其他信息存在差异
         """
         #res = self.body(x)
         out1 = res
@@ -240,7 +263,8 @@ class HAN(nn.Module):
         out2 = self.last_conv(res)
 
         """
-        out1：经过rgs和一个卷积层（代码中的这个卷积层好像错放在lam后面）得到输出，将输出输入到csam中，得到out1
+        out1：经过rgs和一个卷积层得到输出，将输出输入到csam中，得到out1
+        ？？？疑惑：lam与csam的输出在第二个维度上的差异（尝试查看csam代码）
         """
         out1 = self.csa(out1)
         out = torch.cat([out1, out2], 1)
