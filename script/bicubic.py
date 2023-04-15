@@ -5,6 +5,7 @@ import numpy as np
 from scipy.ndimage import zoom
 from src.utility import get_3d
 import re
+from scipy import io
 
 
 # parse args
@@ -19,6 +20,8 @@ parser.add_argument('--sr_img_dir', type=str, default=r'D:\workspace\dataset\OAB
                     help='path to desired output dir for upsampled images')
 parser.add_argument('--data_dir', type=str, default=r'',
                     help='总文件夹')
+parser.add_argument('--is_2d', type=bool, default=True,
+                    help='')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
 parser.add_argument('--nz', type=int)
@@ -370,25 +373,202 @@ def bi_dat_upsampling_x2_3d():
         # save
         sr_img.tofile(os.path.join(sr_image_dir, filename))
 
-if __name__ == '__main__':
-    # # oabreast 3d
-    # # 只需要提供文件夹路径
-    # args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\temp'
-    # bi_dat_downsampling_x2_3d()
-    # bi_dat_upsampling_x2_3d()
+def bi_mat_downsampling_x2():
+    """
+    BI : 仅bicubic
+    :return:
+    """
+    print("\nbi_mat_downsampling_x2")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    hr_dir = os.path.join(args.data_dir, 'HR')
+    hr_names = os.listdir(hr_dir)
+    if len(hr_names) == 0:
+        print(f"no hr files, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    print(f"hr_dir : {hr_dir}")
+    print(f"lr_dir : {lr_dir}")
+    # 建立LR文件夹
+    os.makedirs(lr_dir, exist_ok=True)
+    # 支持文件类型
+    supported_img_formats = (".mat")
+    # 下采样
+    for filename in hr_names:
+        print(filename)
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取hr
+        file = io.loadmat(os.path.join(hr_dir, filename))
+        hr_img = file['f1']
+        # 进行下采样
+        shape = hr_img.shape
+        print(f"downsample before : {shape}")
+        hist, bins = np.histogram(hr_img,density=True)
+        print(f"hist : {hist}")
+        print(f"bins : {bins}")
+        lr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
+        for idx in range(shape[2]):
+            lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        print(f"downsample after : {lr_img_2x.shape}")
+        hist, bins = np.histogram(lr_img_2x,density=True)
+        print(f"hist : {hist}")
+        print(f"bins : {bins}")
+        """
+        经过cv2.resize处理，dtype为浮点数
+        """
+        lr_img_2x = np.clip(1.0e3, 2.0e3, lr_img_2x)
+        # 保存lr文件
+        io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
 
-    # oabreast 2d
-    # 提供文件夹
-    d1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    d2 = r"_Left"
-    datasets = ['07', '35', '47']
-    suffixes = ['', '_train', '_test']
-    for idx_dataset in range(3):
-        for idx_suffix in range(3):
-            args.data_dir = d1 + datasets[idx_dataset] + d2 + suffixes[idx_suffix]
-            bi_dat_downsampling_x2()
-            bi_dat_upsampling_x2()
-        
+def bi_mat_upsampling_x2():
+    """
+    BI : 仅bicubic
+    :return:
+    """
+    print("\nbi_mat_upsampling_x2")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    lr_names = os.listdir(lr_dir)
+    if len(lr_names) == 0:
+        print(f"no lr files, function terminates")
+        return
+    sr_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    print(f"lr_dir : {lr_dir}")
+    print(f"sr_dir : {sr_dir}")
+    # 建立sr文件夹
+    os.makedirs(sr_dir, exist_ok=True)
+    # 支持文件类型
+    supported_img_formats = (".mat")
+    # 下采样
+    for filename in lr_names:
+        print(filename)
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取lr
+        file = io.loadmat(os.path.join(lr_dir, filename))
+        lr_img = file['imgout']
+        # 进行下采样
+        shape = lr_img.shape
+        print(f"downsample before : {shape}")
+        hist, bins = np.histogram(lr_img, density=True)
+        print(f"hist : {hist}")
+        print(f"bins : {bins}")
+
+        sr_img_2x = np.zeros((shape[0]*2, shape[1]*2, shape[2]))
+        for idx in range(shape[2]):
+            sr_img_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        print(f"downsample after : {sr_img_2x.shape}")
+        hist, bins = np.histogram(sr_img_2x, density=True)
+        print(f"hist : {hist}")
+        print(f"bins : {bins}")
+        """
+        经过cv2.resize处理，dtype为浮点数
+        """
+        sr_img_2x = np.clip(1.0e+3, 2.0e+3, sr_img_2x)
+        # 保存sr文件
+        io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
+
+def bi_mat_downsampling_x2_3d():
+    """
+    BI : 仅bicubic
+    :return:
+    """
+    print("\nbi_mat_downsampling_x2_3d")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    hr_dir = os.path.join(args.data_dir, 'HR')
+    hr_names = os.listdir(hr_dir)
+    if len(hr_names) == 0:
+        print(f"no hr files, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    print(f"hr_dir : {hr_dir}")
+    print(f"lr_dir : {lr_dir}")
+    # 建立LR文件夹
+    os.makedirs(lr_dir, exist_ok=True)
+    # 支持文件类型
+    supported_img_formats = (".mat")
+    # 下采样
+    for filename in hr_names:
+        print(filename)
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取hr
+        file = io.loadmat(os.path.join(hr_dir, filename))
+        hr_img = file['f1']
+        # 进行下采样
+        shape = hr_img.shape
+        print(f"downsample before : {shape}")
+        # lr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
+        # for idx in range(shape[2]):
+        #     lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        lr_img_2x = zoom(hr_img, (0.5, 0.5, 0.5), order=1)
+        print(f"downsample after : {lr_img_2x.shape}")
+        """
+        经过cv2.resize处理，dtype为浮点数
+        """
+        lr_img_2x = np.clip(1.0e3, 2.0e3, lr_img_2x)
+        # 保存lr文件
+        io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
+
+def bi_mat_upsampling_x2_3d():
+    """
+    BI : 仅bicubic
+    :return:
+    """
+    print("\nbi_mat_upsampling_x2_3d")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    lr_names = os.listdir(lr_dir)
+    if len(lr_names) == 0:
+        print(f"no lr files, function terminates")
+        return
+    sr_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    print(f"lr_dir : {lr_dir}")
+    print(f"sr_dir : {sr_dir}")
+    # 建立sr文件夹
+    os.makedirs(sr_dir, exist_ok=True)
+    # 支持文件类型
+    supported_img_formats = (".mat")
+    # 下采样
+    for filename in lr_names:
+        print(filename)
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取lr
+        file = io.loadmat(os.path.join(lr_dir, filename))
+        lr_img = file['imgout']
+        # 进行下采样
+        shape = lr_img.shape
+        print(f"downsample before : {shape}")
+        # sr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
+        # for idx in range(shape[2]):
+        #     sr_img_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        sr_img_2x = zoom(lr_img, (2, 2, 2), order=1)
+        print(f"downsample after : {sr_img_2x.shape}")
+        """
+        经过cv2.resize处理，dtype为浮点数
+        """
+        sr_img_2x = np.clip(1.0e3, 2.0e3, sr_img_2x)
+        # 保存sr文件
+        io.savemat(os.path.join(sr_dir, filename), {'imgout' : sr_img_2x})
+
+if __name__ == '__main__':
     # png图片
     # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
     # args.lr_img_dir = 'D:\workspace\dataset\Manga109\clipping\LR'
@@ -396,5 +576,37 @@ if __name__ == '__main__':
     # bi_img_downsampling_x2()
     # bi_img_upsampling_x2()
 
+    # oabreast 2d
+    # 提供文件夹
+    # d1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    # d2 = r"_Left"
+    # datasets = ['07', '35', '47']
+    # suffixes = ['', '_train', '_test']
+    # for idx_dataset in range(3):
+    #     for idx_suffix in range(3):
+    #         args.data_dir = d1 + datasets[idx_dataset] + d2 + suffixes[idx_suffix]
+    #         bi_dat_downsampling_x2()
+    #         bi_dat_upsampling_x2()
+
+    # # oabreast 3d
+    # # 只需要提供文件夹路径
+    # args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\temp'
+    # bi_dat_downsampling_x2_3d()
+    # bi_dat_upsampling_x2_3d()
+
+    # usct 2d
+    # 提供文件夹路径
+    path = r'D:\workspace\dataset\USCT\clipping'
+    for foldername in os.listdir(path):
+        if foldername != 'HR':
+            args.data_dir = os.path.join(path, foldername)
+            bi_mat_downsampling_x2()
+            bi_mat_upsampling_x2()
+
+    # # usct 3d
+    # # 提供文件夹路径
+    # args.data_dir = r'D:\workspace\dataset\USCT\clipping\3d'
+    # # bi_mat_downsampling_x2_3d()
+    # bi_mat_upsampling_x2_3d()
 
 

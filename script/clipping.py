@@ -1,14 +1,14 @@
-'''
-通过剪裁图像，将图像前两个维度中奇数转变为偶数
-防止图像下采样之后，上采样的图形与原图像shape不一致
-'''
 import os
 import cv2
 import numpy as np
 import argparse
+from src.utility import get_3d
+from scipy import io
 
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
-parser.add_argument('--path', type=str, default=r'',
+parser.add_argument('--path_original', type=str, default=r'',
+                    help='')
+parser.add_argument('--path_clipping', type=str, default=r'',
                     help='')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
@@ -54,39 +54,42 @@ def clipping_dat():
     print(f'\nafter clipping : {data.shape}')
     data.tofile(args.path)
 
+def clipping_mat():
+    """
+    输入文件夹路径，批量处理文件
+    将三个维度，都处理成偶数
+    :return:
+    """
+    original = args.path_original
+    clipping = args.path_clipping
+    # 检验original文件夹路径合法性
+    if not os.path.isdir(original):
+        print("original folder doesn`t exist")
+        return
+    # 创建clipping文件夹
+    os.makedirs(clipping, exist_ok=True)
+    print(f"\noriginal : {original}")
+    print(f"clipping : {clipping}")
+    # 遍历处理所有文件
+    for filename in os.listdir(original):
+        print(filename)
+        file = io.loadmat(os.path.join(original, filename))
+        data = file['f1']
+        print(f"before clipping : {data.shape}")
+        for idx in range(3):
+            if data.shape[idx]%2!=0:
+                data = np.delete(data, 0, axis=idx)
+        print(f"after clipping : {data.shape}")
+        # 存储文件
+        file['f1'] = data
+        io.savemat(os.path.join(clipping, filename), file)
+
+
+
 
 if __name__ == '__main__':
-    path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing'
-    nxs = [616, 284, 494]
-    nys = [484, 410, 614]
-    """
-    original
-    train
-    test
-    """
-    nzs = [719, 722, 752,
-           319, 322, 352,
-           400, 400, 400]
-
-    for filename in os.listdir(path):
-        if filename.split('_')[0] != 'Neg':
-            continue
-        args.path = os.path.join(path, filename)
-        if args.path.split('_')[-2] == '07':
-            idx = 0
-        elif args.path.split('_')[-2] == '35':
-            idx = 1
-        elif args.path.split('_')[-2] == '47':
-            idx = 2
-        if args.path.endswith('train'):
-            multiple = 1
-        elif args.path.endswith('test'):
-            multiple = 2
-        else:
-            multiple = 0
-        args.nx = nxs[idx]
-        args.ny = nys[idx]
-        args.nz = nzs[3 * multiple + idx]
-        clipping_dat()
+    args.path_original = r'D:\workspace\dataset\USCT\original\HR'
+    args.path_clipping = r'D:\workspace\dataset\USCT\clipping\HR'
+    clipping_mat()
 
 
