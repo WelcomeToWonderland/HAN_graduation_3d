@@ -4,11 +4,12 @@ import numpy as np
 from data import common
 import random
 from src.utility import get_3d
+from scipy import io
 
 class USCT(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
-        print('Making dataset usct...')
+        print('Making dataset usct 2d...')
         self.args = args
         self.name = name
         self.train = train
@@ -36,7 +37,7 @@ class USCT(data.Dataset):
         '''
         self.apath = os.path.join(dir_data, self.name)
         scale_dir = f'X{self.scale[0]}'
-        self.dir_lr = os.path.join(dir_data, self.name, 'LR',scale_dir)
+        self.dir_lr = os.path.join(dir_data, self.name, 'LR', scale_dir)
         self.dir_hr = os.path.join(dir_data, self.name, 'HR')
         self.ext = '.mat'
 
@@ -46,21 +47,23 @@ class USCT(data.Dataset):
         加载mat文件，放入list
         :return:
         '''
-        list_hr = []
+
         # 读取不同scale的lr文件
         list_lr = [[] for _ in self.scale]
-
-        for entry in os.scandir(self.dir_hr):
-            filename = os.path.splitext(entry.name)[0]
-            list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
-            list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
-        for entry in os.scandir(self.dir_lr):
-            filename = os.path.splitext(entry.name)[0]
-            for si, s in enumerate(self.scale):
-                list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
-                list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
+        """
+        特化：文件夹下只有一个文件
+        """
+        filename = os.listdir(self.dir_hr)[0]
+        file = io.loadmat(os.path.join(self.dir_hr, filename))
+        list_hr = file['f1']
+        filename = os.listdir(self.dir_lr)[0]
+        file = io.loadmat(os.path.join(self.dir_lr, filename))
+        for si, s in enumerate(self.scale):
+            list_lr[si] = file['imgout']
 
         return list_hr, list_lr
+
+
 
     # 函数组-2
     def __getitem__(self, idx):

@@ -84,6 +84,11 @@ class OABreast(data.Dataset):
         # 读取不同scale的lr文件
         list_lr = [[] for _ in self.scale]
 
+        """
+        该写法好像有点问题
+        列表应该用append添加元素，这里是直接赋值
+        恰好读取的整个三维矩阵，就相当于是二维图像的列表，才没有出错
+        """
         for entry in os.scandir(self.dir_hr):
             filename = os.path.splitext(entry.name)[0]
             list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
