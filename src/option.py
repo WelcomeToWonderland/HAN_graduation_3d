@@ -20,7 +20,7 @@ parser.add_argument('--seed', type=int, default=1,
 
 # Data specifications
 # 我的添加：dat文件
-# parser.add_argument('--dat', action='store_true')
+parser.add_argument('--dat', action='store_true')
 # oabreats
 parser.add_argument('--is_2d', action='store_true')
 parser.add_argument('--is_3d', action='store_true')

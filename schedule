@@ -23,3 +23,26 @@ oabreast图像【height, width, depth】,是当作单通道图像
 
 
 /root/miniconda3/bin/python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --load HANx2_oabreast_2d --resume -1 --n_GPUs 1 --template HAN --epochs 9 --scale 2 --save_suffix HANx2_oabreast_2d --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/OABreast --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test --is_2d --rgb_range 4 --n_colors 1
+
+nohup 不挂断运行
+& 后台运行
+nohup /root/miniconda3/bin/python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --lr 1e-5 --n_GPUs 1 --template HAN --epochs 50 --scale 2 --save_suffix HANx2_usct_2d --reset --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+50525+52748+20220526T181025 --data_test 20220511T153240+20220517T112745+20220525T153940 --is_2d --dat --rgb_range 1000 --n_colors 1 &
+
+/root/miniconda3/bin/python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --lr 1e-5 --n_GPUs 1 --template HAN --epochs 50 --scale 2 --save_suffix HANx2_usct_2d --reset --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+50525+52748+20220526T181025 --data_test 20220511T153240+20220517T112745+20220525T153940 --is_2d --dat --rgb_range 1000 --n_colors 1
+
+python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --lr 1e-5 --n_GPUs 1 --template HAN --epochs 50 --scale 2 --save_suffix HANx2_usct_2d_test_for_tmux --reset --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+50525+52748+20220526T181025 --data_test 20220511T153240+20220517T112745+20220525T153940 --is_2d --dat --rgb_range 1000 --n_colors 1
+
+tmux
+终端复用器
+查看所有对话：tmux ls
+创建对话：tmux new -s session1
+s: session name，为session命名
+退出对话：tmux detach
+恢复对话：tmux a -t session1
+a: attach
+t: target，衔接会话名或id
+
+conda
+查看所有虚拟环境详细信息：conda info --envs
+linux环境，激活虚拟环境：source activate env
+win环境，激活虚拟环境：activate env

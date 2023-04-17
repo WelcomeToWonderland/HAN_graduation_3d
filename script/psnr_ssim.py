@@ -325,9 +325,6 @@ def psnr_ssim_mat():
     sr_mat = data['f1']
     data = io.loadmat(args.hr_path)
     hr_mat = data['f1']
-    # 数值平移1000
-    sr_mat -= 1.0e3
-    hr_mat -= 1.0e3
     # hist, bins = np.histogram(sr_mat)
     # print(f"hist : {hist}")
     # print(f"bins : {bins}")
@@ -445,7 +442,7 @@ if __name__ == '__main__':
     # psnr_ssim_dat_3d()
 
     # mat 2d 输入文件路径
-    path = r'D:\workspace\dataset\USCT\clipping\2d'
+    path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d'
     for foldername in os.listdir(path):
         args.dataset = 'usct' + '_' + foldername
         args.hr_path = os.path.join(path, foldername, 'HR', foldername+'.mat')

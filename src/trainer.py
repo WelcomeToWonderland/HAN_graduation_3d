@@ -132,12 +132,12 @@ class Trainer():
                 d.dataset.set_scale(idx_scale)
                 # oabreast_2d
                 if self.args.is_2d:
-                    """
-                    testset中只存放了一份数据
-                    根据data_test，确定三维
-                    """
-                    nx, ny, nz = utility.get_3d(self.args.data_test[0])
-                    sr_dat = np.zeros((nx, ny, nz), dtype=np.uint8)
+                    nx, ny, nz = d.dataset.images_hr.shape
+                    if self.args.dat:
+                        sr_dat = np.zeros((nx, ny, nz), dtype=np.uint8)
+                    else:
+                        sr_dat = np.zeros((nx, ny, nz))
+
                 # psnr、ssim数据记录
                 ssim_mean = 0
                 # 计数

@@ -411,36 +411,54 @@ def make_optimizer(args, target, cpk):
     optimizer._register_scheduler(scheduler_class, **kwargs_scheduler)
     return optimizer
 
-def get_3d(filename):
-        nxs = [616, 284, 494,
-               616, 284, 494,
-               616, 284, 494]
-        nys = [484, 410, 614,
-               484, 410, 614,
-               484, 410, 614]
-        """
-        original
-        train
-        test
-        """
-        nzs = [718, 722, 752,
-               318, 322, 352,
-               400, 400, 400]
-        idx = None
-        multiple = None
-        if filename.split('_')[1] == '07':
-            idx = 0
-        elif filename.split('_')[1] == '35':
-            idx = 1
-        elif filename.split('_')[1] == '47':
-            idx = 2
-        if filename.endswith('train'):
-            multiple = 1
-        elif filename.endswith('test'):
-            multiple = 2
-        else:
-            multiple = 0
-        nx = nxs[3 * multiple + idx]
-        ny = nys[3 * multiple + idx]
-        nz = nzs[3 * multiple + idx]
-        return nx, ny, nz
+def get_3d(filename, is_dat):
+    """
+    输入dat和mat文件basename，返回三维
+
+    ？？？如何区分两种文件 """
+    # dat
+
+    nxs = [616, 284, 494,
+           616, 284, 494,
+           616, 284, 494]
+    nys = [484, 410, 614,
+           484, 410, 614,
+           484, 410, 614]
+    """
+    original
+    train
+    test
+    """
+    nzs = [718, 722, 752,
+           318, 322, 352,
+           400, 400, 400]
+    idx = None
+    multiple = None
+    if filename.split('_')[1] == '07':
+        idx = 0
+    elif filename.split('_')[1] == '35':
+        idx = 1
+    elif filename.split('_')[1] == '47':
+        idx = 2
+    if filename.endswith('train'):
+        multiple = 1
+    elif filename.endswith('test'):
+        multiple = 2
+    else:
+        multiple = 0
+    nx = nxs[3 * multiple + idx]
+    ny = nys[3 * multiple + idx]
+    nz = nzs[3 * multiple + idx]
+
+    # if is_dat:
+    #
+    # else:
+    #     dict = {'20220510T153337' : (256, 256, 144), '20220511T153240' : (256, 256, 144),
+    #             '20220517T112745' : (128, 128, 72), '20220525T153940' : (128, 128, 72),
+    #             '20220526T181025' : (128, 128, 72), '20220608T172601' : (128, 128, 72),
+    #             '20220809T140229' : (256, 256, 144), '20220819T162347' : (196, 196, 110),
+    #             '20221114T153716' : (196, 196, 110), '20221116T164200' : (196, 196, 110),
+    #             '50525' : (196, 196, 114), '52748' : (256, 256, 146)}
+    #     nx, ny, nz = dict[filename]
+
+    return nx, ny, nz

@@ -63,8 +63,6 @@ class USCT(data.Dataset):
 
         return list_hr, list_lr
 
-
-
     # 函数组-2
     def __getitem__(self, idx):
         '''

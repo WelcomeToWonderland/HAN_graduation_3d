@@ -43,7 +43,7 @@ def main():
             checkpoint.done()
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     # m = import_module('data.oabreast_3d')
     # dataset = getattr(m, 'OABreast')(args, name='OABreast_3d_train')
@@ -55,12 +55,12 @@ if __name__ == '__main__':
     #     print(f"lr shape : {lr.shape}")
     #     print(f"filename : {filename}")
 
-    m = import_module('data.usct')
-    dataset = getattr(m, 'USCT')(args, name='20220511T153240')
-    length = len(dataset)
-    print(f"len : {length}")
-    for idx in range(length):
-        lr, hr, filename = dataset.__getitem__(idx)
-        print(f"\nhr shape : {hr.shape}")
-        print(f"lr shape : {lr.shape}")
-        print(f"filename : {filename}")
+    # m = import_module('data.usct')
+    # dataset = getattr(m, 'USCT')(args, name='20220511T153240')
+    # length = len(dataset)
+    # print(f"len : {length}")
+    # for idx in range(length):
+    #     lr, hr, filename = dataset.__getitem__(idx)
+    #     print(f"\nhr shape : {hr.shape}")
+    #     print(f"lr shape : {lr.shape}")
+    #     print(f"filename : {filename}")

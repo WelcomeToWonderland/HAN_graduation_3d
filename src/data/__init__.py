@@ -44,6 +44,16 @@ class Data:
                     else:
                         m = import_module('data.oabreast')
                     datasets.append(getattr(m, 'OABreast')(args, name=d))
+                elif module_name in ['20220510T153337', '20220608T172601', '20220809T140229',
+                                     '20220819T162347', '20221114T153716', '20221116T164200',
+                                     '20220511T153240', '20220517T112745', '20220525T153940',
+                                     '20220526T181025',
+                                     '50525','52748']:
+                    if args.is_3d :
+                        m = import_module('data.usct_3d')
+                    else:
+                        m = import_module('data.usct')
+                    datasets.append(getattr(m, 'USCT')(args, name=d))
                 # 其他数据集
                 else:
                     m = import_module('data.' + module_name.lower())
@@ -76,11 +86,24 @@ class Data:
                 else:
                     m = import_module('data.oabreast')
                 testset = getattr(m, 'OABreast')(args, train=False, name=d)
+            elif d in ['20220510T153337', '20220608T172601', '20220809T140229',
+                                 '20220819T162347', '20221114T153716', '20221116T164200',
+                                 '20220511T153240', '20220517T112745', '20220525T153940',
+                                 '20220526T181025',
+                                 '50525', '52748']:
+                if args.is_3d:
+                    m = import_module('data.usct_3d')
+                else:
+                    m = import_module('data.usct')
+                testset = getattr(m, 'USCT')(args, train=False, name=d)
             else:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'
                 m = import_module('data.' + module_name.lower())
                 testset = getattr(m, module_name)(args, train=False, name=d)
 
+            """
+            与train不同，shuffle=False，文件将不会被打乱
+            """
             self.loader_test.append(
                 dataloader.DataLoader(
                     testset,
