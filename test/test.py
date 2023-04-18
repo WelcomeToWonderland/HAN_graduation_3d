@@ -10,37 +10,42 @@ from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
 
-# data_1_path = r'D:\workspace\dataset\USCT\clipping\2d\50525\HR\50525.mat'
-# print(f"\n{data_1_path}")
-# data_1 = io.loadmat(data_1_path)
-# print(data_1.keys())
-# data_1 = data_1['f1']
-# print(type(data_1))
-# print(data_1.shape)
-# print(f"dtpye : {data_1.dtype}")
-# print(f"max : {data_1.max()}")
-# print(f"min : {data_1.min()}")
-# hist, bins = np.histogram(data_1, np.inf, density=True)
-# cumhist = np.cumsum(hist)
-# print(f"hist : {hist}")
-# print(f"cumhist : {cumhist}")
-# print(f"bins : {bins}")
-# print('\nflatten')
-# hist, bins = np.histogram(data_1.flatten(), np.inf, density=True)
-# cumhist = np.cumsum(hist)
-# print(f"hist : {hist}")
-# print(f"cumhist : {cumhist}")
-# print(f"bins : {bins}")
+path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\50525\HR\50525.mat'
+file = io.loadmat(path)
+data = file['f1']
+hist, bins = np.histogram(data)
+print(f"hist : {hist}")
+print(f"bins : {bins}")
 
 
-hr = np.random.rand(500, 500, 500) * 1000
-print(f"shape : {hr.shape}")
-print(f"dtype : {hr.dtype}")
-print(f"min : {hr.min()}")
-print(f"max : {hr.max()}")
-lr = zoom(hr, (0.5, 0.5, 0.5), order=1)
-sr = zoom(lr, (2, 2, 2), order=1)
-print(f"psnr : {peak_signal_noise_ratio(hr, sr, data_range=1.0e3)}")
-print(f"ssim : {structural_similarity(hr, sr, data_range=1.0e3, multichannel=True)}")
-
-
+# # 精简
+# print(f"\n2d")
+# path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\20221116T164200\HR\20221116T164200.mat'
+# file = io.loadmat(path)
+# hr = file['f1']
+# shape = hr.shape
+# lr = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
+# for idx in range(shape[2]):
+#     lr[..., idx] = cv2.resize(hr[..., idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+# lr = np.clip(0.0, 1.0e3, lr)
+# sr = np.zeros(hr.shape)
+# for idx in range(hr.shape[2]):
+#     sr[..., idx] = cv2.resize(lr[..., idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+# sr = np.clip(0.0, 1.0e3, sr)
+# psnr = peak_signal_noise_ratio(hr, sr, data_range=1.0e3)
+# ssim = structural_similarity(hr, sr, data_range=1.0e3, multichannel=True)
+# print(f"psnr : {psnr}")
+# print(f"ssim : {ssim}")
+#
+# print(f"\n3d")
+# path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\20221116T164200\HR\20221116T164200.mat'
+# file = io.loadmat(path)
+# hr = file['f1']
+# lr = zoom(hr, (0.5, 0.5, 0.5), order=1)
+# lr = np.clip(0.0, 1.0e3, lr)
+# sr = zoom(lr, (2, 2, 2), order=1)
+# sr = np.clip(0.0, 1.0e3, sr)
+# psnr = peak_signal_noise_ratio(hr, sr, data_range=1.0e3)
+# ssim = structural_similarity(hr, sr, data_range=1.0e3, multichannel=True)
+# print(f"psnr : {psnr}")
+# print(f"ssim : {ssim}")

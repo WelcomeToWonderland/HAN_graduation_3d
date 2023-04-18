@@ -19,7 +19,9 @@ usct
 1、模型的注意力机制，包含通道注意力机制，但是切片得到的2d图像是，单通道的
 
 问题
-1、输出保存：同样使用远程服务资源，使用pycharm执行项目，成功保存输出（experiment中存在对应输出文件夹）；直接在远程服务器上，执行文件，
+1、传统方法重建usct图像，psnr和ssim指数过高
+可能原因：传统方法对dtype=float的像素矩阵hr，下采样lr，上采样sr，hr与sr十分接近
+分析：如果dtype=uint8，还需要经历类型转换的过程
 
 
 /root/miniconda3/bin/python -u /root/autodl-tmp/project/HAN_3d_running/src/main.py --load HANx2_oabreast_2d --resume -1 --n_GPUs 1 --template HAN --epochs 9 --scale 2 --save_suffix HANx2_oabreast_2d --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/OABreast --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test --is_2d --rgb_range 4 --n_colors 1

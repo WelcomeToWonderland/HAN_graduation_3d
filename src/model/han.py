@@ -43,6 +43,9 @@ class LAM_Module(nn.Module):
 
 
         self.gamma = nn.Parameter(torch.zeros(1))
+        """
+        在最后一个维度上，进行softmax计算
+        """
         self.softmax  = nn.Softmax(dim=-1)
     def forward(self,x):
         """
@@ -53,10 +56,38 @@ class LAM_Module(nn.Module):
                 attention: B X N X N
         """
         m_batchsize, N, C, height, width = x.size()
+        """
+        proj : projection 投影，映射
+        """
         proj_query = x.view(m_batchsize, N, -1)
+        """
+        permute : 置换、排列、交换
+        
+        转置，为后面的bmm操作做准备
+        """
         proj_key = x.view(m_batchsize, N, -1).permute(0, 2, 1)
+        """
+        计算机query和key之间的相关矩阵
+        bmm：批量矩阵相乘
+        
+        最后结果：B*N*N
+        """
         energy = torch.bmm(proj_query, proj_key)
+        """
+        模块的softmax在最后一个维度进行计算
+        torch.max第二个参数指定在哪个维度上进行计算
+        -1，代表最后一个维度，与softmax对应
+        
+        torch.max：返回指定维度上的最大值和对应索引
+        torch.max(~)[0]：取得指定维度最大值
+        keepdim=True：保持维度数不变，也即是结果形状为B*N*1
+        
+        expand_as(energy)：将结果扩展至与energy形状相同，也就是最后一个维度自我复制，B*N*N
+        """
         energy_new = torch.max(energy, -1, keepdim=True)[0].expand_as(energy)-energy
+        """
+        转换权重矩阵
+        """
         attention = self.softmax(energy_new)
         proj_value = x.view(m_batchsize, N, -1)
 
@@ -72,9 +103,33 @@ class CSAM_Module(nn.Module):
     def __init__(self, in_dim):
         super(CSAM_Module, self).__init__()
         self.chanel_in = in_dim
-
-
+        """
+        1、三维卷积
+        通过三维卷积获得通道和空间特征Wcsa
+        
+        2、sigmoid
+        计算Wcsa：σ（Wcsa）
+        计算细节：输出张量与输入张量形状一致，每个元素被压缩到0~1之间
+        
+        3、gamma
+        比例因子gamma
+        gamma*σ（Wcsa）
+        
+        4、整体计算公式
+        Fn输入csam模块的特征
+        gamma*σ（Wcsa）*Fn + Fn
+        """
+        
+        """
+        3, 1, 1：输出与输入形状一致
+        
+        ？？？输入输出的通道数都是1，但是特征图通道不是1
+        ？？？与lam类似？：将通道维度往后移一位，以第二个维度，存放各rg和最后卷积层的共十一个输出，经过特定卷积层整合一个结果，第二维为1
+        """
         self.conv = nn.Conv3d(1, 1, 3, 1, 1)
+        """        
+        nn.Parameter将输入的张量转化为模型的参数，在学习中会被更新
+        """
         self.gamma = nn.Parameter(torch.zeros(1))
         #self.softmax  = nn.Softmax(dim=-1)
         self.sigmoid = nn.Sigmoid()
@@ -87,6 +142,11 @@ class CSAM_Module(nn.Module):
                 attention: B X N X N
         """
         m_batchsize, C, height, width = x.size()
+        """
+        out = x.unsqueeze(1)
+        与lam相似的操作：通道维度延后，第二个维度另作他用：计算Wcsa
+        第二个维度为1，刚好符合三维卷积输入1的要求
+        """
         out = x.unsqueeze(1)
         out = self.sigmoid(self.conv(out))
         
@@ -101,8 +161,16 @@ class CSAM_Module(nn.Module):
         # out = out.view(m_batchsize, N, C, height, width)
 
         out = self.gamma*out
+        """
+        实际效果：去除之前x.unsqueeze(1)，添加的第二个维度，回复原形状
+        """
         out = out.view(m_batchsize, -1, height, width)
         x = x * out + x
+        """
+        ???
+        在csam的处理中，输出与输入的形状一致，添加的第二个维度，最终去除了；
+        但是与lam的输出（添加的第二个维度没有删除）不一致，后续cat操作
+        """
         return x
 
 ## Residual Channel Attention Block (RCAB)
@@ -215,6 +283,9 @@ class HAN(nn.Module):
         与论文所展示结构略有区别：将最后卷积层的输出，也输入到lam中
         """
         self.last_conv = nn.Conv2d(n_feats*11, n_feats, 3, 1, 1)
+        """
+        整合lam和csam的输出
+        """
         self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
         self.tail = nn.Sequential(*modules_tail)
 
@@ -239,8 +310,6 @@ class HAN(nn.Module):
             batch, channel, height, width, depth
             新增加的维度1，代表num_midlayer
             占据了原先的channel通道，在卷积中，当作channel处理
-            
-            存在问题：新增加了一个维度，与其他处理结果形状不同
             """
             if name=='0':
                 res1 = res.unsqueeze(1)
@@ -252,8 +321,7 @@ class HAN(nn.Module):
         """
         out1:rgs的输出
         out2:lam的输出
-        经过self.last_conv的处理：输入11通道，输出1通道，整合各层次之间的信息
-        ？？？疑惑：经过self.last_conv整合后，第二个维度，变成1，但依旧不是之前的通道维度（此时在第三个维度），与其他信息存在差异
+        经过self.last_conv的处理：输入11*feat通道，输出1*feat通道，整合各层次之间的信息
         """
         #res = self.body(x)
         out1 = res
@@ -264,13 +332,17 @@ class HAN(nn.Module):
 
         """
         out1：经过rgs和一个卷积层得到输出，将输出输入到csam中，得到out1
-        ？？？疑惑：lam与csam的输出在第二个维度上的差异（尝试查看csam代码）
         """
         out1 = self.csa(out1)
         out = torch.cat([out1, out2], 1)
-        """
-        ？？？self.last
-        
+
+        # test
+        # print(f"out1 : {out1.shape}")
+        # print(f"out2 : {out2.shape}")
+
+        """      
+        通过卷积操作，缩小一倍第二维度，从2*feat到1*feat
+        这样结果就与最初的卷积层输出形状一致，可以完成元素相加        
         """
         res = self.last(out)
         """

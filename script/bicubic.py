@@ -424,7 +424,7 @@ def bi_mat_downsampling_x2():
         """
         经过cv2.resize处理，dtype为浮点数
         """
-        lr_img_2x = np.clip(1.0e3, 2.0e3, lr_img_2x)
+        lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
 
@@ -483,7 +483,7 @@ def bi_mat_upsampling_x2():
         """
         经过cv2.resize处理，dtype为浮点数
         """
-        sr_img_2x = np.clip(1.0e+3, 2.0e+3, sr_img_2x)
+        sr_img_2x = np.clip(0.0, 1.0e+3, sr_img_2x)
         # 保存sr文件
         io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
 
@@ -543,7 +543,7 @@ def bi_mat_downsampling_x2_3d():
         """
         经过cv2.resize处理，dtype为浮点数
         """
-        lr_img_2x = np.clip(1.0e3, 2.0e3, lr_img_2x)
+        lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
 
@@ -603,7 +603,7 @@ def bi_mat_upsampling_x2_3d():
         """
         经过cv2.resize处理，dtype为浮点数
         """
-        sr_img_2x = np.clip(1.0e3, 2.0e3, sr_img_2x)
+        sr_img_2x = np.clip(0, 1.0e3, sr_img_2x)
         # 保存sr文件
         io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
 
