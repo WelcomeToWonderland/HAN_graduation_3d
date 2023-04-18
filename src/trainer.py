@@ -191,7 +191,7 @@ class Trainer():
                 # self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
                 if self.args.save_results:
                     if self.args.is_2d:
-                        self.ckp.save_results_dat(d, sr_dat, scale)
+                        self.ckp.save_results_2d(d, sr_dat, scale)
                 self.ckp.log[-1, idx_data, idx_scale] /= len(d)
                 """
                 best

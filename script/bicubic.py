@@ -605,7 +605,7 @@ def bi_mat_upsampling_x2_3d():
         """
         sr_img_2x = np.clip(1.0e3, 2.0e3, sr_img_2x)
         # 保存sr文件
-        io.savemat(os.path.join(sr_dir, filename), {'imgout' : sr_img_2x})
+        io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
 
 if __name__ == '__main__':
     # png图片

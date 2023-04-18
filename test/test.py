@@ -6,6 +6,9 @@ import datetime
 import torch
 import re
 from scipy import io
+from skimage.metrics import peak_signal_noise_ratio
+from skimage.metrics import structural_similarity
+from scipy.ndimage import zoom
 
 # data_1_path = r'D:\workspace\dataset\USCT\clipping\2d\50525\HR\50525.mat'
 # print(f"\n{data_1_path}")
@@ -29,9 +32,15 @@ from scipy import io
 # print(f"cumhist : {cumhist}")
 # print(f"bins : {bins}")
 
-path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d\HR'
-for filename in os.listdir(path):
-    file = io.loadmat(os.path.join(path, filename))
-    data = file['f1']
-    print(f"\nfilename : {filename}")
-    print(f"shape : {data.shape}")
+
+hr = np.random.rand(500, 500, 500) * 1000
+print(f"shape : {hr.shape}")
+print(f"dtype : {hr.dtype}")
+print(f"min : {hr.min()}")
+print(f"max : {hr.max()}")
+lr = zoom(hr, (0.5, 0.5, 0.5), order=1)
+sr = zoom(lr, (2, 2, 2), order=1)
+print(f"psnr : {peak_signal_noise_ratio(hr, sr, data_range=1.0e3)}")
+print(f"ssim : {structural_similarity(hr, sr, data_range=1.0e3, multichannel=True)}")
+
+

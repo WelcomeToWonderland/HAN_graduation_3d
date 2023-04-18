@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import imageio
+from scipy import io
 
 import torch
 import torch.optim as optim
@@ -263,13 +264,20 @@ class checkpoint():
                 else:
                     self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
 
-    def save_results_dat(self, dataset, sr_dat, scale):
+    def save_results_2d(self, dataset, sr_dat, scale):
         if self.args.save_results:
-            filename = self.get_path(
-                'results-{}'.format(dataset.dataset.name),
-                '{}_x{}_SR.DAT'.format(self.args.data_test[0], scale)
-            )
-            sr_dat.tofile(filename)
+            if self.args.dat:
+                filename = self.get_path(
+                    'results-{}'.format(dataset.dataset.name),
+                    '{}_x{}_SR.DAT'.format(dataset.dataset.name, scale)
+                )
+                sr_dat.tofile(filename)
+            else:
+                filename = self.get_path(
+                    'results-{}'.format(dataset.dataset.name),
+                    '{}_x{}_SR.mat'.format(dataset.dataset.name, scale)
+                )
+                io.savemat(filename, {'f1' : sr_dat})
 
 def quantize(img, rgb_range):
     """
@@ -326,11 +334,12 @@ def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     else:
         shave = scale + 6
 
+    """
+    为了保持一致性，去除修建
     valid = diff[..., shave:-shave, shave:-shave]
+    """
+    valid = diff
     mse = valid.pow(2).mean()
-
-    # print(f"\npeak_signal_noise_ratio : {peak_signal_noise_ratio(hr.cpu().numpy(), sr.cpu().numpy(), data_range=rgb_range)}")
-    # print(f"calc_psnr : {-10 * math.log10(mse)}")
 
     return -10 * math.log10(mse)
 

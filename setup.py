@@ -96,6 +96,10 @@ python setup.py install
 site-package
 第三方包的安装目录
 python解释器，会从site-package中寻找模块和库，同python脚本使用
+
+使用pip install -e安装自己的项目后，项目将被复制到site-package文件夹下
+1、直接在项目的src目录下，执行main.py文件，与使用ssh解释器的pycharm执行项目效果一样
+2、不在项目中直接执行main.py文件，将执行site-package中复制的项目，也就是输出也会保存在site-package中项目的文件夹中
 """
 setup(
     name='my_project',
