@@ -72,7 +72,15 @@ class Upsampler(nn.Sequential):
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
                 m.append(conv(n_feats, 4 * n_feats, 3, bias))
+                """
+                nn.PixelShuffle(r)
+                应用于二维图像
+                将通道数缩小r^2倍，将H和W维度扩大r倍
+                """
                 m.append(nn.PixelShuffle(2))
+                """
+                下面没有生效
+                """
                 if bn:
                     m.append(nn.BatchNorm2d(n_feats))
                 if act == 'relu':
@@ -89,6 +97,26 @@ class Upsampler(nn.Sequential):
                 m.append(nn.ReLU(True))
             elif act == 'prelu':
                 m.append(nn.PReLU(n_feats))
+        else:
+            raise NotImplementedError
+
+        super(Upsampler, self).__init__(*m)
+
+class Upsampler_3d(nn.Sequential):
+    def __init__(self, conv, scale, n_feats, bn=False, act=False, bias=True):
+
+        m = []
+        """
+        scale ： 2的整数次幂
+        """
+        if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
+            for _ in range(int(math.log(scale, 2))):
+                m.append(conv(n_feats, 8 * n_feats, 3, bias))
+                m.append(nn.PixelShuffle3d(2))
+
+        elif scale == 3:
+            m.append(conv(n_feats, 27 * n_feats, 3, bias))
+            m.append(nn.PixelShuffle3d(3))
         else:
             raise NotImplementedError
 

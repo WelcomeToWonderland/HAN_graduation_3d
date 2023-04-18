@@ -24,12 +24,13 @@ class LAM_Module(nn.Module):
     def forward(self,x):
         """
             inputs :
-                x : input feature maps( B X N X C X H X W)
+                x : input feature maps( B X N X C X H X W X D)
             returns :
                 out : attention value + input feature
                 attention: B X N X N
         """
-        m_batchsize, N, C, height, width = x.size()
+        # m_batchsize, N, C, height, width = x.size()
+        m_batchsize, N, C, height, width, depth = x.size()
         """
         proj : projection 投影，映射
         """
@@ -66,10 +67,14 @@ class LAM_Module(nn.Module):
         proj_value = x.view(m_batchsize, N, -1)
 
         out = torch.bmm(attention, proj_value)
-        out = out.view(m_batchsize, N, C, height, width)
+        # out = out.view(m_batchsize, N, C, height, width)
+        out = out.view(m_batchsize, N, C, height, width, depth)
 
         out = self.gamma*out + x
-        out = out.view(m_batchsize, -1, height, width)
+        """
+        C : N*C 11*feat
+        """
+        out = out.view(m_batchsize, -1, height, width, depth)
         return out
 
 class CSAM_Module(nn.Module):
@@ -96,11 +101,12 @@ class CSAM_Module(nn.Module):
         
         """
         3, 1, 1：输出与输入形状一致
-        
-        ？？？输入输出的通道数都是1，但是特征图通道不是1
-        ？？？与lam类似？：将通道维度往后移一位，以第二个维度，存放各rg和最后卷积层的共十一个输出，经过特定卷积层整合一个结果，第二维为1
         """
-        self.conv = nn.Conv3d(1, 1, 3, 1, 1)
+        """
+        3d修改
+        """
+        # self.conv = nn.Conv3d(1, 1, 3, 1, 1)
+        self.conv = nn.Conv4d(1, 1, 3, 1, 1)
         """        
         nn.Parameter将输入的张量转化为模型的参数，在学习中会被更新
         """
@@ -110,12 +116,13 @@ class CSAM_Module(nn.Module):
     def forward(self,x):
         """
             inputs :
-                x : input feature maps( B X N X C X H X W)
+                x : input feature maps( B X N X C X H X W X D)
             returns :
                 out : attention value + input feature
                 attention: B X N X N
         """
-        m_batchsize, C, height, width = x.size()
+        # m_batchsize, C, height, width = x.size()
+        m_batchsize, C, height, width, depth = x.size()
         """
         out = x.unsqueeze(1)
         与lam相似的操作：通道维度延后，第二个维度另作他用：计算Wcsa
@@ -138,7 +145,8 @@ class CSAM_Module(nn.Module):
         """
         实际效果：去除之前x.unsqueeze(1)，添加的第二个维度，回复原形状
         """
-        out = out.view(m_batchsize, -1, height, width)
+        # out = out.view(m_batchsize, -1, height, width)
+        out = out.view(m_batchsize, -1, height, width, depth)
         x = x * out + x
         """
         ???
@@ -286,7 +294,7 @@ class HAN(nn.Module):
 
         # define tail module
         modules_tail = [
-            common.Upsampler(conv, scale, n_feats, act=False),
+            common.Upsampler_3d(conv, scale, n_feats, act=False),
             conv(n_feats, args.n_colors, kernel_size)]
 
         self.head = nn.Sequential(*modules_head)
@@ -297,11 +305,13 @@ class HAN(nn.Module):
         n_feats*11 : n_rgs=10 + rgs之后的一个卷积层
         与论文所展示结构略有区别：将最后卷积层的输出，也输入到lam中
         """
-        self.last_conv = nn.Conv2d(n_feats*11, n_feats, 3, 1, 1)
+        # self.last_conv = nn.Conv2d(n_feats*11, n_feats, 3, 1, 1)
+        self.last_conv = nn.Conv3d(n_feats*11, n_feats, 3, 1, 1)
         """
         整合lam和csam的输出
         """
-        self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
+        # self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
+        self.last = nn.Conv3d(n_feats*2, n_feats, 3, 1, 1)
         self.tail = nn.Sequential(*modules_tail)
 
     def forward(self, x):
