@@ -113,8 +113,7 @@ class Upsampler_3d(nn.Sequential):
         """
         scale ： 2的整数次幂
         PixelShuffle3d 没有被是实现的函数
-        
-        改用nn.Upsample，一步完成上采样，但是也没有了卷积层，上采样模块将无法训练     
+        改用nn.Upsample，一步完成上采样
         """
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
