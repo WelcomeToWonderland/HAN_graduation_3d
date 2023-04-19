@@ -129,5 +129,5 @@ class Upsampler_3d(nn.Sequential):
         else:
             raise NotImplementedError
 
-        super(Upsampler, self).__init__(*m)
+        super(Upsampler_3d, self).__init__(*m)
 
