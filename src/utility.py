@@ -257,10 +257,16 @@ class checkpoint():
                 添加文件后缀名
                 """
                 if self.args.is_3d:
-                    """
-                    oabreast 2d切片，保存处理结果在另一个函数中
-                    """
-                    self.queue.put(('{}{}.DAT'.format(filename, p), tensor_cpu))
+                    if self.args.dat:
+                        """
+                        oabreast 2d切片，保存处理结果在另一个函数中
+                        """
+                        self.queue.put(('{}{}.DAT'.format(filename, p), tensor_cpu))
+                    else:
+                        """
+                        usct 3d
+                        """
+                        self.queue.put(('{}{}.mat'.format(filename, p), tensor_cpu))
                 else:
                     self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
 

@@ -6,10 +6,10 @@ import random
 import glob
 from utility import get_3d
 
-class USCT(data.Dataset):
+class OABreast(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
-        print('Making dataset oabreast...')
+        print('Making dataset usct 3d...')
         self.args = args
         self.name = name
         self.train = train

@@ -68,6 +68,10 @@ class Upsampler(nn.Sequential):
         m = []
         """
         scale ： 2的整数次幂
+        
+        不使用nn.PixelShuffle(scale)，一步完成上采样，而是使用多个nn.PixelShuffle(2)达成效果（这种方法，又称为深度上采样）
+        1、减少计算量（不理解）
+        2、特征学习：学习分辨率提升的过程中的特征（与PixelShuffle搭配的conv卷积层）
         """
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
@@ -108,15 +112,21 @@ class Upsampler_3d(nn.Sequential):
         m = []
         """
         scale ： 2的整数次幂
+        PixelShuffle3d 没有被是实现的函数
+        
+        改用nn.Upsample，一步完成上采样，但是也没有了卷积层，上采样模块将无法训练     
         """
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
-                m.append(conv(n_feats, 8 * n_feats, 3, bias))
-                m.append(nn.PixelShuffle3d(2))
-
+                # m.append(conv(n_feats, 8 * n_feats, 3, bias))
+                # m.append(nn.PixelShuffle3d(2))
+                m.append(conv(n_feats, n_feats, 3, bias))
+                m.append(nn.Upsample(2))
         elif scale == 3:
-            m.append(conv(n_feats, 27 * n_feats, 3, bias))
-            m.append(nn.PixelShuffle3d(3))
+            # m.append(conv(n_feats, 27 * n_feats, 3, bias))
+            # m.append(nn.PixelShuffle3d(3))
+            m.append(conv(n_feats, n_feats, 3, bias))
+            m.append(nn.Upsample(3))
         else:
             raise NotImplementedError
 

@@ -3,13 +3,13 @@ import os
 import numpy as np
 from data import common
 import random
+import glob
 from src.utility import get_3d
 
-class Usct(data.Dataset):
+class USCT(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
-        print('Making dataset oabreast...')
-        self.nx, self.ny, self.nz = get_3d(name)
+        print('Making dataset usct 3d...')
 
         self.args = args
         self.name = name
@@ -28,38 +28,6 @@ class Usct(data.Dataset):
         list_hr, list_lr = self._scan()
         self.images_hr, self.images_lr = list_hr, list_lr
 
-        """
-        self.repeat
-        在__len__函数中，有使用
-        """
-        if train:
-            """
-            test_every(_batch)
-            n_patches 两次test之间，使用了n_patches张图像（patch），进行train
-            """
-            n_patches = args.batch_size * args.test_every
-            args.test_every = 10
-
-            """
-            修改前
-            n_images = len(args.data_train) * len(self.images_hr)
-                        
-            n_images理解为，所有数据集中图像数量之和（单个数据集，就是这个数据集中）
-            
-            疑惑
-            数据集个数*本数据集中数据数量，但是不同数据集中的数据数量是不同的
-            那这样的话，不同数据集对应dataset类求出的n_images是不同的，求出的repeat也是不同的
-            """
-            n_images = len(args.data_train) * np.shape(self.images_hr)[2]
-            if n_images == 0:
-                self.repeat = 0
-            else:
-                """
-                self.repeat
-                两次test之间，同一张图像需要重复多少次
-                """
-                self.repeat = max(n_patches // n_images, 1)
-
     def _set_filesystem(self, dir_data):
         '''
         去掉了input_large相关语句（benchmark中也去掉了）
@@ -69,34 +37,59 @@ class Usct(data.Dataset):
         :return:
         '''
         self.apath = os.path.join(dir_data, self.name)
-        scale_dir = f'X{self.scale[0]}'
-        self.dir_lr = os.path.join(dir_data, self.name, 'LR',scale_dir)
+        # scale_dir = f'X{self.scale[0]}'
+        self.dir_lr = os.path.join(dir_data, self.name, 'LR')
         self.dir_hr = os.path.join(dir_data, self.name, 'HR')
-        self.ext = '.DAT'
+        self.ext = '.mat'
+
+    # def _scan(self):
+    #     '''
+    #     扫描文件夹
+    #     读取dat文件，加载所有图片信息，放入list
+    #     :return:
+    #     '''
+    #     list_hr = []
+    #     # 读取不同scale的lr文件
+    #     list_lr = [[] for _ in self.scale]
+    #
+    #     for entry in os.scandir(self.dir_hr):
+    #         filename = os.path.splitext(entry.name)[0]
+    #         list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
+    #         list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
+    #     for entry in os.scandir(self.dir_lr):
+    #         filename = os.path.splitext(entry.name)[0]
+    #         for si, s in enumerate(self.scale):
+    #             list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
+    #             list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
+    #
+    #     return list_hr, list_lr
+
+    # 函数组-2
 
     def _scan(self):
         '''
         扫描文件夹
-        读取dat文件，加载所有图片信息，放入list
+        获取所有hr和lr文件名
         :return:
         '''
-        list_hr = []
-        # 读取不同scale的lr文件
-        list_lr = [[] for _ in self.scale]
-
-        for entry in os.scandir(self.dir_hr):
-            filename = os.path.splitext(entry.name)[0]
-            list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
-            list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
-        for entry in os.scandir(self.dir_lr):
-            filename = os.path.splitext(entry.name)[0]
+        """
+        获取hr文件名
+        根据hr文件名，获取不同scale的对应lr文件名
+        直接获取文件夹下所有lr文件名，存在hr与lr不配对的风险
+        """
+        names_hr = sorted(
+            glob.glob(os.path.join(self.dir_hr, '*' + self.ext))
+        )
+        # 为不同scale，建立对应lr文件名存储list
+        names_lr = [[] for _ in self.scale]
+        for f in names_hr:
+            f = os.path.basename(f)
             for si, s in enumerate(self.scale):
-                list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
-                list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
+                names_lr[si].append(os.path.join(
+                    self.dir_lr, 'X{}/{}'.format(s, f)
+                ))
+        return names_hr, names_lr
 
-        return list_hr, list_lr
-
-    # 函数组-2
     def __getitem__(self, idx):
         '''
         函数修改，不再返回filename，改成返回idx
@@ -165,7 +158,8 @@ class Usct(data.Dataset):
         不再使用args.every_test属性，对应sef.repeat属性
         :return:
         """
-        return np.shape(se1f.images_hr)[2]
+        # return np.shape(se1f.images_hr)[2]
+        return len(se1f.images_hr)
 
     # 函数-4
     def set_scale(self, idx_scale):

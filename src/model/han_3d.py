@@ -267,6 +267,7 @@ class ResidualGroup(nn.Module):
 class HAN(nn.Module):
     def __init__(self, args, conv=common.default_conv_3d):
         super(HAN, self).__init__()
+        print("Making model:han 3d...")
         """
         3d修改：更换conv
         """

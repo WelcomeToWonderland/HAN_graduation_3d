@@ -9,13 +9,67 @@ from scipy import io
 from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
+import torch.nn as nn
 
-path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\50525\HR\50525.mat'
-file = io.loadmat(path)
-data = file['f1']
-hist, bins = np.histogram(data)
-print(f"hist : {hist}")
-print(f"bins : {bins}")
+# upsameple = nn.Upsample(2)
+# temp = torch.zeros((16, 8,  1, 1, 1))
+# temp = upsameple((temp))
+# print(f"shape : {temp.shape}")
+#
+# temp = torch.zeros((16, 8,  1, 1))
+# temp = upsameple((temp))
+# print(f"shape : {temp.shape}")
+
+upsameple = nn.PixelShuffle(2)
+# temp = torch.zeros((16, 8,  1, 1, 1))
+# temp = upsameple((temp))
+# print(f"shape : {temp.shape}")
+
+temp = torch.zeros((16, 8,  1, 1))
+temp = upsameple((temp))
+print(f"shape : {temp.shape}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # 精简
