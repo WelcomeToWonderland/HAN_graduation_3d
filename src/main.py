@@ -64,3 +64,13 @@ if __name__ == '__main__':
     #     print(f"\nhr shape : {hr.shape}")
     #     print(f"lr shape : {lr.shape}")
     #     print(f"filename : {filename}")
+
+    # m = import_module('data.usct_3d')
+    # dataset = getattr(m, 'USCT')(args, name='USCT_3d_train')
+    # length = len(dataset)
+    # print(f"len : {length}")
+    # for idx in range(length):
+    #     lr, hr, filename = dataset.__getitem__(idx)
+    #     print(f"\nhr shape : {hr.shape}")
+    #     print(f"lr shape : {lr.shape}")
+    #     print(f"filename : {filename}")

@@ -5,6 +5,7 @@ from data import common
 import random
 import glob
 from src.utility import get_3d
+from scipy import io
 
 class USCT(data.Dataset):
     # 函数组-1
@@ -92,32 +93,56 @@ class USCT(data.Dataset):
 
     def __getitem__(self, idx):
         '''
-        函数修改，不再返回filename，改成返回idx
+        usct 3d
+        返回filename
         :param idx:
         :return:
         '''
-        lr, hr = self._load_file(idx)
+        lr, hr, basename = self._load_file(idx)
         pair = self.get_patch(lr, hr)
-        pair = common.set_channel(*pair, n_channels=self.args.n_colors)
-        pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range)
-        return pair_t[0], pair_t[1], idx
+        """
+        3d数据，通道数只为1，所以没有设置channel的需求
+        set_channel_3d
+        """
+        # pair = common.set_channel_3d(*pair, n_channels=self.args.n_colors)
+        """
+        common.np2Tensor：从ndarray到tensor
+        trainer.prepare:数据转移到计算设备
+        """
+        pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range, is_3d=self.args.is_3d)
+        return pair_t[0], pair_t[1], basename
 
     def _load_file(self, idx):
         '''
         函数修改：不再是加载图片（已经加载在list中），而是将图片从list中取出
-        同时在最后增加一个维度（x，y 到 x, y, 1），相当于单通道图片
+
+        为不存在通道维度的像素矩阵，添加通道维度
+        模型，要求数据具有通道维度
+
+        从list中取得filename，加载file，取出data
+
         :param idx:
         :return:
         '''
-        idx = self._get_index(idx)
-        hr = self.images_hr[:, :, idx]
-        lr = self.images_lr[self.idx_scale][:, :, idx]
-
-        return lr, hr
+        # get filename & basename
+        f_hr = self.images_hr[idx]
+        f_lr = self.images_lr[self.idx_scale][idx]
+        basename = os.path.splitext(os.path.basename(f_hr))[0]
+        # get file & data
+        file = io.loadmat(f_hr)
+        hr = file['f1']
+        file = io.loadmat(f_lr)
+        lr = file['imgout']
+        # 增加通道维度
+        lr = np.expand_dims(lr, axis=3) if lr.ndim == 3 else lr
+        hr = np.expand_dims(hr, axis=3) if hr.ndim == 3 else hr
+        # 返回文件，以及文件名称
+        return lr, hr, basename
 
     def _get_index(self, idx):
         if self.train:
-            return idx % np.shape(self.images_hr)[2]
+            # return idx % np.shape(self.images_hr)[2]
+            return idx % len(self.images_hr)
         else:
             return idx
 
@@ -131,7 +156,7 @@ class USCT(data.Dataset):
         """
         scale = self.scale[self.idx_scale]
         if self.train:
-            lr, hr = common.get_patch(
+            lr, hr = common.get_patch_3d(
                 lr, hr,
                 patch_size=self.args.patch_size,
                 scale=scale,

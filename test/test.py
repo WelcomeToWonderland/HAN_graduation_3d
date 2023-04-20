@@ -20,14 +20,10 @@ import torch.nn as nn
 # temp = upsameple((temp))
 # print(f"shape : {temp.shape}")
 
-upsameple = nn.PixelShuffle(2)
-# temp = torch.zeros((16, 8,  1, 1, 1))
-# temp = upsameple((temp))
-# print(f"shape : {temp.shape}")
+temp = np.zeros((1, 2, 3))
+temp = temp.transpose(1, 0, 2)
+print(temp.shape)
 
-temp = torch.zeros((16, 8,  1, 1))
-temp = upsameple((temp))
-print(f"shape : {temp.shape}")
 
 
 

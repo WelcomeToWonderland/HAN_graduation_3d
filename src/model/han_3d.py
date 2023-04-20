@@ -3,6 +3,7 @@ from model import common
 import torch
 import torch.nn as nn
 import pdb
+from src.Conv4d import Conv4d
 
 def make_model(args, parent=False):
     return HAN(args)
@@ -106,7 +107,7 @@ class CSAM_Module(nn.Module):
         3d修改
         """
         # self.conv = nn.Conv3d(1, 1, 3, 1, 1)
-        self.conv = nn.Conv4d(1, 1, 3, 1, 1)
+        self.conv = Conv4d(in_channels=1, out_channels=1, kernel_size=3, padding=1, stride=1)
         """        
         nn.Parameter将输入的张量转化为模型的参数，在学习中会被更新
         """
