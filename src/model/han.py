@@ -349,7 +349,6 @@ class HAN(nn.Module):
         res：long skip、lam和csam的整合结果
         """
         res += x
-        #res = self.csa(res)
 
         x = self.tail(res)
 

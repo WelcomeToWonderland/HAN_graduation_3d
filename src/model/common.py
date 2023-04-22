@@ -120,7 +120,7 @@ class Upsampler_3d(nn.Sequential):
                 # m.append(conv(n_feats, 8 * n_feats, 3, bias))
                 # m.append(nn.PixelShuffle3d(2))
                 m.append(conv(n_feats, n_feats, 3, bias))
-                m.append(nn.Upsample(2))
+                m.append(nn.Upsample(64))
         elif scale == 3:
             # m.append(conv(n_feats, 27 * n_feats, 3, bias))
             # m.append(nn.PixelShuffle3d(3))

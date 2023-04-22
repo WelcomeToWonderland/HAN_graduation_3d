@@ -298,6 +298,8 @@ class HAN(nn.Module):
         modules_tail = [
             common.Upsampler_3d(conv, scale, n_feats, act=False),
             conv(n_feats, args.n_colors, kernel_size)]
+        # modules_tail = [
+        #     common.Upsampler_3d(conv, scale, n_feats, act=False)]
 
         self.head = nn.Sequential(*modules_head)
         self.body = nn.Sequential(*modules_body)
@@ -315,19 +317,18 @@ class HAN(nn.Module):
         # self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
         self.last = nn.Conv3d(n_feats*2, n_feats, 3, 1, 1)
         self.tail = nn.Sequential(*modules_tail)
+        # self.test = conv(n_feats, args.n_colors, kernel_size)
 
     def forward(self, x):
 
         x = self.head(x)
         res = x
-        #pdb.set_trace()
         """
         属性_modules以OrderDict的形式，返回所有子模块
         字典方法items()，返回包含字典中所有（key, value）元组的列表
         """
         for name, midlayer in self.body._modules.items():
             res = midlayer(res)
-            #print(name)
             """
             unsqueeze在指定位置，增加一个大小为1的维度，创建源tensor的视图，输入张量与输出张量共享内存，改变输出张量，输入张量也会变化
             unsqueeze(1) 中的”1“指的是第二个位置
@@ -360,10 +361,6 @@ class HAN(nn.Module):
         out1 = self.csa(out1)
         out = torch.cat([out1, out2], 1)
 
-        # test
-        # print(f"out1 : {out1.shape}")
-        # print(f"out2 : {out2.shape}")
-
         """      
         通过卷积操作，缩小一倍第二维度，从2*feat到1*feat
         这样结果就与最初的卷积层输出形状一致，可以完成元素相加        
@@ -373,7 +370,6 @@ class HAN(nn.Module):
         res：long skip、lam和csam的整合结果
         """
         res += x
-        #res = self.csa(res)
 
         x = self.tail(res)
 

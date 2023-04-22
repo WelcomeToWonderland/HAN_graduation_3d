@@ -11,18 +11,15 @@ from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
 import torch.nn as nn
 
-# upsameple = nn.Upsample(2)
-# temp = torch.zeros((16, 8,  1, 1, 1))
-# temp = upsameple((temp))
-# print(f"shape : {temp.shape}")
-#
-# temp = torch.zeros((16, 8,  1, 1))
-# temp = upsameple((temp))
-# print(f"shape : {temp.shape}")
+upsameple = nn.Upsample(2)
+temp = torch.zeros((2, 64,  32, 23, 23))
+temp = upsameple((temp))
+print(f"shape : {temp.shape}")
 
-temp = np.zeros((1, 2, 3))
-temp = temp.transpose(1, 0, 2)
-print(temp.shape)
+temp = torch.zeros((16, 8, 32, 32))
+temp = upsameple((temp))
+print(f"shape : {temp.shape}")
+
 
 
 

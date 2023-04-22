@@ -25,6 +25,11 @@ class Model(nn.Module):
         self.n_GPUs = args.n_GPUs
         self.save_models = args.save_models
 
+        """
+        forward中使用
+        """
+        self.is_3d = args.is_3d
+
         if args.model.lower() == 'han':
             if args.is_3d:
                 module = import_module('model.han_3d')
@@ -134,40 +139,75 @@ class Model(nn.Module):
             chop = Ture
             self_emsemble = Fasle
             """
-            if self.chop:
-                forward_function = self.forward_chop
-            else:
-                forward_function = self.model.forward
+            if self.is_3d:
+                if self.chop:
+                    forward_function = self.forward_chop_3d
+                else:
+                    forward_function = self.model.forward
 
-            if self.self_ensemble:
-                return self.forward_x8(x, forward_function=forward_function)
+                if self.self_ensemble:
+                    return self.forward_x8(x, forward_function=forward_function)
+                else:
+                    return forward_function(x)
             else:
-                return forward_function(x)
+                if self.chop:
+                    forward_function = self.forward_chop
+                else:
+                    forward_function = self.model.forward
+
+                if self.self_ensemble:
+                    return self.forward_x8(x, forward_function=forward_function)
+                else:
+                    return forward_function(x)
 
     def forward_chop(self, x, shave=10, min_size=160000):
+        """
+        像素块剪裁
+        为了加快运算，将lr划分成4块
+        对分块进行超分计算
+        最后拼接得到完整sr
+        """
         scale = self.scale[self.idx_scale]
         n_GPUs = min(self.n_GPUs, 4)
+        # 剪裁chop处理
         b, c, h, w = x.size()
         h_half, w_half = h // 2, w // 2
         h_size, w_size = h_half + shave, w_half + shave
+        """
+        并不是将x划分成不重不漏的四块
+        不重不漏应该是0:h_size & h_size:h
+        这里确保的是，每块大小都是w_size * h_size（如果h和w是偶数，那就是不重不漏，考虑到了奇数的情况）：0:h_size & (h - h_size):h
+        每个块都比四分之一的lr更大，因此不用担心h是奇数，2*h_half<h，导致无法拼出完整sr
+        """
         lr_list = [
             x[:, :, 0:h_size, 0:w_size],
             x[:, :, 0:h_size, (w - w_size):w],
             x[:, :, (h - h_size):h, 0:w_size],
             x[:, :, (h - h_size):h, (w - w_size):w]]
-
+        # 依照分块大小，分别处理lr分块，得到sr分块
         if w_size * h_size < min_size:
+            """
+            分块比较小
+            一块gpu处理一个分块
+            """
             sr_list = []
             for i in range(0, 4, n_GPUs):
                 lr_batch = torch.cat(lr_list[i:(i + n_GPUs)], dim=0)
                 sr_batch = self.model(lr_batch)
                 sr_list.extend(sr_batch.chunk(n_GPUs, dim=0))
         else:
+            """
+            分块比较大
+            再次调用自身forward_chop，将分块再次划分
+            """
             sr_list = [
                 self.forward_chop(patch, shave=shave, min_size=min_size) \
                 for patch in lr_list
             ]
-
+        # 拼接sr分块，得到完整sr
+        """
+        因为
+        """
         h, w = scale * h, scale * w
         h_half, w_half = scale * h_half, scale * w_half
         h_size, w_size = scale * h_size, scale * w_size
@@ -185,30 +225,112 @@ class Model(nn.Module):
 
         return output
 
-    def forward_x8(self, *args, forward_function=None):
-        def _transform(v, op):
-            if self.precision != 'single': v = v.float()
+    def forward_chop_3d(self, x, shave=10, min_size=160000):
+        scale = self.scale[self.idx_scale]
+        n_GPUs = min(self.n_GPUs, 8)
 
+        b, c, h, w, d = x.size()
+        h_half, w_half, d_half = h // 2, w // 2, d // 2
+        h_size, w_size, d_size = h_half + shave, w_half + shave, d_half + shave
+        """
+        分成八块
+        """
+        lr_list = [
+            x[:, :, 0:h_size, 0:w_size, 0:d_size],
+            x[:, :, 0:h_size, (w - w_size):w, 0:d_size],
+            x[:, :, (h - h_size):h, 0:w_size, 0:d_size],
+            x[:, :, (h - h_size):h, (w - w_size):w, 0:d_size],
+            x[:, :, 0:h_size, 0:w_size, (d-d_size):d],
+            x[:, :, 0:h_size, (w - w_size):w, (d-d_size):d],
+            x[:, :, (h - h_size):h, 0:w_size, (d-d_size):d],
+            x[:, :, (h - h_size):h, (w - w_size):w, (d-d_size):d]
+        ]
+
+        if w_size * h_size * d_size < min_size:
+            sr_list = []
+            for i in range(0, 8, n_GPUs):
+                lr_batch = torch.cat(lr_list[i:(i + n_GPUs)], dim=0)
+                sr_batch = self.model(lr_batch)
+                sr_list.extend(sr_batch.chunk(n_GPUs, dim=0))
+        else:
+            sr_list = [
+                self.forward_chop(patch, shave=shave, min_size=min_size) \
+                for patch in lr_list
+            ]
+
+        h, w, d = scale * h, scale * w, scale * d
+        h_half, w_half, d_half = scale * h_half, scale * w_half, scale * d_half
+        h_size, w_size, d_size = scale * h_size, scale * w_size, scale * d_size
+        shave *= scale
+
+        output = x.new(b, c, h, w, d)
+        output[:, :, 0:h_half, 0:w_half, 0:d_half] \
+            = sr_list[0][:, :, 0:h_half, 0:w_half, 0:d_half]
+        output[:, :, 0:h_half, w_half:w, 0:d_half] \
+            = sr_list[1][:, :, 0:h_half, (w_size - w + w_half):w_size, 0:d_half]
+        output[:, :, h_half:h, 0:w_half, 0:d_half] \
+            = sr_list[2][:, :, (h_size - h + h_half):h_size, 0:w_half, 0:d_half]
+        output[:, :, h_half:h, w_half:w, 0:d_half] \
+            = sr_list[3][:, :, (h_size - h + h_half):h_size, (w_size - w + w_half):w_size, 0:d_half]
+
+        output[:, :, 0:h_half, 0:w_half, d_half:d] \
+            = sr_list[4][:, :, 0:h_half, 0:w_half, (d_size - d + d_half):d_size]
+        output[:, :, 0:h_half, w_half:w, d_half:d] \
+            = sr_list[5][:, :, 0:h_half, (w_size - w + w_half):w_size, (d_size - d + d_half):d_size]
+        output[:, :, h_half:h, 0:w_half, d_half:d] \
+            = sr_list[6][:, :, (h_size - h + h_half):h_size, 0:w_half, (d_size - d + d_half):d_size]
+        output[:, :, h_half:h, w_half:w, d_half:d] \
+            = sr_list[7][:, :, (h_size - h + h_half):h_size, (w_size - w + w_half):w_size, (d_size - d + d_half):d_size]
+
+        return output
+
+    def forward_x8(self, *args, forward_function=None):
+        """
+        进行八种变换，增强test数据
+        """
+        def _transform(v, op):
+            """
+            进行三种变化
+            累计有2*2*2=8种结果
+            """
+            if self.precision != 'single': v = v.float()
+            # 转换到ndarray
             v2np = v.data.cpu().numpy()
             if op == 'v':
                 tfnp = v2np[:, :, :, ::-1].copy()
             elif op == 'h':
                 tfnp = v2np[:, :, ::-1, :].copy()
             elif op == 't':
-                tfnp = v2np.transpose((0, 1, 3, 2)).copy()
-
+                if v2np.ndim == 4:
+                    tfnp = v2np.transpose((0, 1, 3, 2)).copy()
+                else:
+                    tfnp = v2np.transpose((0, 1, 4, 3, 2)).copy()
+            # 转换到tensor，且转移到计算设备
             ret = torch.Tensor(tfnp).to(self.device)
             if self.precision == 'half': ret = ret.half()
 
             return ret
 
+        # 变换test lr
         list_x = []
+        """
+        实际上args只有一个元素：lr
+        """
         for a in args:
             x = [a]
+            """
+            1
+            2
+            4
+            8
+            """
             for tf in 'v', 'h', 't': x.extend([_transform(_x, tf) for _x in x])
-
+            """
+            list_x 双重list
+            """
             list_x.append(x)
 
+        # 计算 test sr
         list_y = []
         for x in zip(*list_x):
             y = forward_function(*x)
