@@ -10,13 +10,14 @@ from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
 import torch.nn as nn
+# from src.PixelShuffle3D import PixelShuffle3D
 
-upsameple = nn.Upsample(2)
-temp = torch.zeros((2, 64,  32, 23, 23))
+upsameple = nn.Upsample(scale_factor=2)
+temp = torch.zeros((1, 1,  32, 23, 23))
 temp = upsameple((temp))
 print(f"shape : {temp.shape}")
 
-temp = torch.zeros((16, 8, 32, 32))
+temp = torch.zeros((1, 1, 32, 32))
 temp = upsameple((temp))
 print(f"shape : {temp.shape}")
 

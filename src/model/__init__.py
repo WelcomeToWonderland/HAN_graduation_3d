@@ -254,14 +254,14 @@ class Model(nn.Module):
                 sr_list.extend(sr_batch.chunk(n_GPUs, dim=0))
         else:
             sr_list = [
-                self.forward_chop(patch, shave=shave, min_size=min_size) \
+                self.forward_chop_3d(patch, shave=shave, min_size=min_size) \
                 for patch in lr_list
             ]
 
         h, w, d = scale * h, scale * w, scale * d
         h_half, w_half, d_half = scale * h_half, scale * w_half, scale * d_half
         h_size, w_size, d_size = scale * h_size, scale * w_size, scale * d_size
-        shave *= scale
+        # shave *= scale
 
         output = x.new(b, c, h, w, d)
         output[:, :, 0:h_half, 0:w_half, 0:d_half] \

@@ -4,6 +4,7 @@ import time
 import datetime
 from multiprocessing import Process
 from multiprocessing import Queue
+from scipy import io
 
 import matplotlib
 matplotlib.use('Agg')
@@ -207,7 +208,13 @@ class checkpoint():
                 if not queue.empty():
                     filename, tensor = queue.get()
                     if filename is None: break
-                    imageio.imwrite(filename, tensor.numpy())
+                    _, ext = os.path.splitext(filename)
+                    if ext == '.mat':
+                        io.savemat(filename, {'f1' : tensor.numpy()})
+                    elif ext == '.DAT':
+                        tensor.numpy().tofile(filename)
+                    else:
+                        imageio.imwrite(filename, tensor.numpy())
 
         self.process = [
             Process(target=bg_target, args=(self.queue,)) \
@@ -252,7 +259,10 @@ class checkpoint():
             postfix = ('SR', 'LR', 'HR')
             for v, p in zip(save_list, postfix):
                 normalized = v[0].mul(255 / self.args.rgb_range)
-                tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
+                if self.args.is_3d:
+                    tensor_cpu = normalized.byte().permute(1, 2, 3, 0).cpu()
+                else:
+                    tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
                 """
                 添加文件后缀名
                 """
