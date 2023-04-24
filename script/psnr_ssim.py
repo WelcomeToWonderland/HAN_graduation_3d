@@ -310,9 +310,11 @@ def psnr_ssim_mat():
     print('\npsnr_ssim_mat')
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    # tb
+    # make dirs
     log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    os.makedirs(log_dir, exist_ok=True)
     print(log_dir)
+    # tb
     writer = SummaryWriter(log_dir=log_dir)
     # log
     log_file = open(log_dir + r"/log.txt", 'x')
@@ -417,9 +419,11 @@ def psnr_ssim_mat_3d():
     print('\npsnr_ssim_mat_3d')
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    # tb
+    # make dirs
     log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    os.makedirs(log_dir, exist_ok=True)
     print(log_dir)
+    # tb
     writer = SummaryWriter(log_dir=log_dir)
     # log
     log_file = open(log_dir + r"/log.txt", 'x')
@@ -451,29 +455,31 @@ def psnr_ssim_mat_3d():
         file1 = io.loadmat(os.path.join(hr_dir, hr_filename))
         hr_mat = file1['f1']
         file2 = io.loadmat(os.path.join(sr_dir, sr_filename))
-        print(file2.keys())
+        # print(file2.keys())
         sr_mat = file2['f1']
         # 计算
         psnr_temp = peak_signal_noise_ratio(hr_mat, sr_mat, data_range=1.0e3)
         ssim_temp = structural_similarity(hr_mat, sr_mat, data_range=1.0e3, multichannel=True)
-        loss_temp = loss_function(torch.from_numpy(hr_mat).float(), torch.from_numpy(sr_mat).float())
+        # loss_temp = loss_function(torch.from_numpy(hr_mat).float(), torch.from_numpy(sr_mat).float())
         psnr_mean += psnr_temp
         ssim_mean += ssim_temp
-        loss_mean += loss_temp
+        # loss_mean += loss_temp
         psnr.append(psnr_temp)
         ssim.append(ssim_temp)
-        loss.append(loss_temp)
-        log = f"\nordinal:{idx_filename+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
+        # loss.append(loss_temp)
+        # log = f"\nordinal:{idx_filename+1} : psnr:{psnr_temp}, ssim:{ssim_temp}, loss:{loss_temp}"
+        log = f"\nordinal:{idx_filename+1} : psnr:{psnr_temp}, ssim:{ssim_temp}"
         log_file.write(log)
         print(log)
         writer.add_scalar(r'psnr', psnr_temp, idx_filename+1)
         writer.add_scalar(r'ssim', ssim_temp, idx_filename+1)
-        writer.add_scalar(r'loss', loss_temp, idx_filename+1)
+        # writer.add_scalar(r'loss', loss_temp, idx_filename+1)
 
     psnr_mean /= length
     ssim_mean /= length
-    loss_mean /= length
-    log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}, loss_mean : {loss_mean}"
+    # loss_mean /= length
+    # log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}, loss_mean : {loss_mean}"
+    log = f"\npsnr_mean : {psnr_mean}, ssim_mean : {ssim_mean}"
     log_file.write(log)
     print(log)
     log_file.close();
@@ -502,16 +508,16 @@ def psnr_ssim_mat_3d():
     plt.savefig(os.path.join(log_dir, f"{label}.png"))
     plt.close(fig)
 
-    label = f"loss_{dataset}"
-    fig = plt.figure()
-    plt.title(label)
-    plt.plot(axis, loss, label=label)
-    plt.legend()
-    plt.xlabel = 'idx'
-    plt.ylabel = 'loss'
-    plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
-    plt.close(fig)
+    # label = f"loss_{dataset}"
+    # fig = plt.figure()
+    # plt.title(label)
+    # plt.plot(axis, loss, label=label)
+    # plt.legend()
+    # plt.xlabel = 'idx'
+    # plt.ylabel = 'loss'
+    # plt.grid(True)
+    # plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    # plt.close(fig)
 
 if __name__ == '__main__':
     # png图片
@@ -546,14 +552,14 @@ if __name__ == '__main__':
     # psnr_ssim_dat_3d()
 
     # mat 2d 输入文件路径
-    # path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d'
-    # for foldername in os.listdir(path):
-    #     args.dataset = 'usct' + '_' + foldername
-    #     args.hr_path = os.path.join(path, foldername, 'HR', foldername+'.mat')
-    #     args.sr_path = os.path.join(path, foldername, 'SR', 'X2', foldername+'.mat')
-    #     psnr_ssim_mat()
+    path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_uint'
+    for foldername in os.listdir(path):
+        args.dataset = 'usct' + '_' + foldername
+        args.hr_path = os.path.join(path, foldername, 'HR', foldername+'.mat')
+        args.sr_path = os.path.join(path, foldername, 'SR', 'X2', foldername+'.mat')
+        psnr_ssim_mat()
 
     # mat 3d 输入文件夹路径
     args.dataset = 'usct' + '_' + '3d'
-    args.data_dir = r"D:\workspace\dataset\USCT\clipping\pixel_translation\3d"
+    args.data_dir = r"D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_uint"
     psnr_ssim_mat_3d()

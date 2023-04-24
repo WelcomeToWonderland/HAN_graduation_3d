@@ -12,18 +12,22 @@ from scipy.ndimage import zoom
 import torch.nn as nn
 # from src.PixelShuffle3D import PixelShuffle3D
 
-upsameple = nn.Upsample(scale_factor=2)
-temp = torch.zeros((1, 1,  32, 23, 23))
-temp = upsameple((temp))
-print(f"shape : {temp.shape}")
-
-temp = torch.zeros((1, 1, 32, 32))
-temp = upsameple((temp))
-print(f"shape : {temp.shape}")
-
-
-
-
+path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d'
+for foldername in os.listdir(path):
+    temp = os.path.join(path, foldername, 'HR')
+    for filename in os.listdir(temp):
+        tt = os.path.join(temp, filename)
+        file = io.loadmat(tt)
+        data = file['f1']
+        print(f"filename : {filename}, dtype : {data.dtype}")
+# 3d
+path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d'
+temp = os.path.join(path, 'HR')
+for filename in os.listdir(temp):
+    tt = os.path.join(temp, filename)
+    file = io.loadmat(tt)
+    data = file['f1']
+    print(f"filename : {filename}, dtype : {data.dtype}")
 
 
 
