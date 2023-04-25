@@ -12,25 +12,9 @@ from scipy.ndimage import zoom
 import torch.nn as nn
 # from src.PixelShuffle3D import PixelShuffle3D
 
-path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d'
-for foldername in os.listdir(path):
-    temp = os.path.join(path, foldername, 'HR')
-    for filename in os.listdir(temp):
-        tt = os.path.join(temp, filename)
-        file = io.loadmat(tt)
-        data = file['f1']
-        print(f"filename : {filename}, dtype : {data.dtype}")
-# 3d
-path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d'
-temp = os.path.join(path, 'HR')
-for filename in os.listdir(temp):
-    tt = os.path.join(temp, filename)
-    file = io.loadmat(tt)
-    data = file['f1']
-    print(f"filename : {filename}, dtype : {data.dtype}")
 
-
-
+d1 = 'OABreast_Neg_23_Left'
+t1, t2 = d1.split('_')
 
 
 

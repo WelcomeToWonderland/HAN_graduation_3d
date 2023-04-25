@@ -436,7 +436,7 @@ def make_optimizer(args, target, cpk):
     optimizer._register_scheduler(scheduler_class, **kwargs_scheduler)
     return optimizer
 
-def get_3d(filename, is_dat):
+def get_3d(filename):
     """
     输入dat和mat文件basename，返回三维
 
