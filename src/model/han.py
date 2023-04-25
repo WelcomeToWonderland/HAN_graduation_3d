@@ -192,6 +192,9 @@ class RCAB(nn.Module):
         """
         for i in range(2):
             modules_body.append(conv(n_feat, n_feat, kernel_size, bias=bias))
+
+            if bn: print("bn")
+
             if bn: modules_body.append(nn.BatchNorm2d(n_feat))
             if i == 0: modules_body.append(act)
         modules_body.append(CALayer(n_feat, reduction))
@@ -206,7 +209,7 @@ class RCAB(nn.Module):
 
 ## Residual Group (RG)
 class ResidualGroup(nn.Module):
-    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
+    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks, bn):
         super(ResidualGroup, self).__init__()
         """
         限制
@@ -215,7 +218,7 @@ class ResidualGroup(nn.Module):
         """
         modules_body = [
             RCAB(
-                conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
+                conv, n_feat, kernel_size, reduction, bias=True, bn=bn, act=nn.ReLU(True), res_scale=1) \
             for _ in range(n_resblocks)]
         modules_body.append(conv(n_feat, n_feat, kernel_size))
         self.body = nn.Sequential(*modules_body)
@@ -229,7 +232,9 @@ class ResidualGroup(nn.Module):
 class HAN(nn.Module):
     def __init__(self, args, conv=common.default_conv):
         super(HAN, self).__init__()
-        
+
+        bn = args.bn
+
         n_resgroups = args.n_resgroups
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
@@ -262,7 +267,7 @@ class HAN(nn.Module):
         # define body module
         modules_body = [
             ResidualGroup(
-                conv, n_feats, kernel_size, reduction, act=act, res_scale=args.res_scale, n_resblocks=n_resblocks) \
+                conv, n_feats, kernel_size, reduction, act=act, res_scale=args.res_scale, n_resblocks=n_resblocks, bn=bn) \
             for _ in range(n_resgroups)]
 
         modules_body.append(conv(n_feats, n_feats, kernel_size))

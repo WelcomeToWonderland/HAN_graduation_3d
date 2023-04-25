@@ -10,11 +10,12 @@ from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
 import torch.nn as nn
-# from src.PixelShuffle3D import PixelShuffle3D
+import math
 
 
-d1 = 'OABreast_Neg_23_Left'
-t1, t2 = d1.split('_')
+t1 = 1000.0
+t2 = 1000
+print(math.isclose(t1, t2))
 
 
 

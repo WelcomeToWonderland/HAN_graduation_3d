@@ -86,7 +86,7 @@ def psnr_ssim_img():
     plt.xlabel('epoch')
     plt.ylabel('PSNR')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
     label = f"{dataset}"
@@ -98,7 +98,7 @@ def psnr_ssim_img():
     plt.xlabel('epoch')
     plt.ylabel('SSIM')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
 def psnr_ssim_dat():
@@ -166,7 +166,7 @@ def psnr_ssim_dat():
     plt.xlabel('epoch')
     plt.ylabel('PSNR')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
     label = f"{dataset}"
@@ -178,7 +178,7 @@ def psnr_ssim_dat():
     plt.xlabel('epoch')
     plt.ylabel('SSIM')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
 def psnr_ssim_dat_3d():
@@ -254,7 +254,7 @@ def psnr_ssim_dat_3d():
     plt.xlabel('epoch')
     plt.ylabel('PSNR')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
     label = f"{dataset}"
@@ -266,7 +266,7 @@ def psnr_ssim_dat_3d():
     plt.xlabel('epoch')
     plt.ylabel('SSIM')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
 def psnr_ssim_mat():
@@ -330,7 +330,7 @@ def psnr_ssim_mat():
     plt.xlabel('epoch')
     plt.ylabel('PSNR')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
     label = f"{dataset}"
@@ -342,7 +342,7 @@ def psnr_ssim_mat():
     plt.xlabel('epoch')
     plt.ylabel('SSIM')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
 def psnr_ssim_mat_3d():
@@ -417,7 +417,7 @@ def psnr_ssim_mat_3d():
     plt.xlabel('epoch')
     plt.ylabel('PSNR')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
     label = f"{dataset}"
@@ -429,7 +429,7 @@ def psnr_ssim_mat_3d():
     plt.xlabel('epoch')
     plt.ylabel('SSIM')
     plt.grid(True)
-    plt.savefig(os.path.join(log_dir, f"{label}.png"))
+    plt.savefig(os.path.join(log_dir, f"{title}.png"))
     plt.close(fig)
 
 

@@ -15,6 +15,7 @@ import pdb
 
 class Benchmark(srdata.SRData):
     def __init__(self, args, name='', train=True, benchmark=True):
+        print(f"Making dataset {name}...")
         super(Benchmark, self).__init__(
             args, name=name, train=train, benchmark=True)
 

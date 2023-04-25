@@ -308,7 +308,10 @@ def quantize(img, rgb_range):
     round：四舍五入的保留小数，默认保留小数位为0，相当于取整；输入数据与输出数据的类型相同
     """
     # return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
-    return img.mul(pixel_range).clamp(0, 255).div(pixel_range).round()
+    if math.isclose(rgb_range, 1000.0):
+        return img.mul(pixel_range).clamp(0, 255).div(pixel_range)
+    else:
+        return img.mul(pixel_range).clamp(0, 255).div(pixel_range).round()
 
 def normalization(img, rgb_range):
     """
