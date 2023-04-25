@@ -3,8 +3,8 @@ import os
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.path.insert(0, BASE_DIR)
 
-import common
-import srdata
+from src.data import common
+from src.data import srdata
 
 import numpy as np
 
