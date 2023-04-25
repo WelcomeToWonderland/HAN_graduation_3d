@@ -11,12 +11,18 @@ from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
 import torch.nn as nn
 import math
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
+path = r'D:\workspace\dataset\USCT\original\HR\50525.mat'
+file = io.loadmat(path)
+data = file['f1']
 
-t1 = 1000.0
-t2 = 1000
-print(math.isclose(t1, t2))
-
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+x, y, z = np.indices(data.shape)
+ax.scatter(x, y, z, c=data.ravel(), cmap=plt.cm.viridis)
+plt.show()
 
 
 
