@@ -5,6 +5,9 @@
 论文
 2、论文添加引用
 
+存在问题
+usct 2d bn：选取适合的lr
+
 论文要求
 1、15000文字
 2、15篇外文引用
@@ -63,6 +66,8 @@ python main.py --lr 5.0e-5 --load HANx2_usct_2d --resume -1 --n_GPUs 1 --templat
 han 3d running
 cd /root/autodl-tmp/project/HAN_3d_running/src
 python main.py --lr 3.0e-5 --n_GPUs 1 --template HAN --epochs 250 --scale 2 --save HANx2_usct_2d_lr_3 --save_suffix HANx2_usct_2d --reset --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT_2d --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+52748+20220526T181025+20220525T153940 --data_test 20220511T153240+20220517T112745+50525 --is_2d --rgb_range 1000 --n_colors 1
+python main.py --bn --save HANx2_usct_2d_bn --lr 1.0e-4 --n_GPUs 1 --template HAN --epochs 3 --scale 2 --save_suffix HANx2_usct_2d --reset --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT_2d --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+52748+20220526T181025+20220525T153940 --data_test 20220511T153240+20220517T112745+50525 --is_2d --rgb_range 1000 --n_colors 1
+python main.py --bn --load HANx2_usct_2d_bn_lr_7 --resume -1 --lr 7.0e-5 --n_GPUs 1 --template HAN --epochs 250 --scale 2 --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT_2d --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+52748+20220526T181025+20220525T153940+20220819T162347 --data_test 20220511T153240+20220517T112745+50525 --is_2d --rgb_range 1000 --n_colors 1
 
 han 3d 4
 cd /root/autodl-tmp/project/HAN_3d/src
