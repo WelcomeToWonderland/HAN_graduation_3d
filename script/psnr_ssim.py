@@ -437,46 +437,46 @@ if __name__ == '__main__':
     args.algorithm = 'bicubic'
 
     # png图片
-    args.dataset = 'Manga109'
-    args.hr_path = r'D:\workspace\dataset\Manga109\clipping\HR'
-    args.sr_path = r'D:\workspace\dataset\Manga109\clipping\bicubic\SR\X2'
+    args.dataset = 'Urban100'
+    args.hr_path = r'D:\workspace\dataset\Urban100\HR'
+    args.sr_path = r'D:\workspace\dataset\Urban100\SR\X2'
     psnr_ssim_img()
 
-    # args.dataset = r'Neg_07_Left_test'
-    # # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
-    # # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
-    # args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
-    # args.sr_path = r'D:\workspace\HAN_for_test\experiment\2023-04-06-19%3A53%3A58HANx2_oabreast\results-Neg_07_Left_test\MergedPhantom_x2_SR.DAT'
-    # psnr_ssim_dat()
-
-    # 2d 所有dat文件
-    d1 = 'OABreast_Neg_'
-    d2 = '_Left'
-    h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    h2 = r"_Left\HR\MergedPhantom.DAT"
-    s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
-    s2 = r"_Left\SR\X2\MergedPhantom.DAT"
-    datasets = ['07', '35', '47']
-    for idx in range(3):
-        args.dataset = d1 + datasets[idx] + d2
-        args.hr_path = h1 + datasets[idx] + h2
-        args.sr_path = s1 + datasets[idx] + s2
-        psnr_ssim_dat()
-
-    # 3d dat
-    args.dataset = 'OABreast_3d'
-    args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
-    psnr_ssim_dat_3d()
-
-    # mat 2d 输入文件路径
-    path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_uint'
-    for foldername in os.listdir(path):
-        args.dataset = 'usct' + '_' + foldername
-        args.hr_path = os.path.join(path, foldername, 'HR', foldername+'.mat')
-        args.sr_path = os.path.join(path, foldername, 'SR', 'X2', foldername+'.mat')
-        psnr_ssim_mat()
-
-    # mat 3d 输入文件夹路径
-    args.dataset = 'usct' + '_' + '3d'
-    args.data_dir = r"D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_uint"
-    psnr_ssim_mat_3d()
+    # # args.dataset = r'Neg_07_Left_test'
+    # # # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'
+    # # # args.sr_path = r'/root/autodl-tmp/project/HAN_for_test/experiment/2023-04-06-19:53:58HANx2_oabreast/results-Neg_07_Left_test/MergedPhantom_x2_SR.DAT'
+    # # args.hr_path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_07_Left_test\HR\MergedPhantom.DAT'
+    # # args.sr_path = r'D:\workspace\HAN_for_test\experiment\2023-04-06-19%3A53%3A58HANx2_oabreast\results-Neg_07_Left_test\MergedPhantom_x2_SR.DAT'
+    # # psnr_ssim_dat()
+    #
+    # # 2d 所有dat文件
+    # d1 = 'OABreast_Neg_'
+    # d2 = '_Left'
+    # h1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    # h2 = r"_Left\HR\MergedPhantom.DAT"
+    # s1 = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\Neg_"
+    # s2 = r"_Left\SR\X2\MergedPhantom.DAT"
+    # datasets = ['07', '35', '47']
+    # for idx in range(3):
+    #     args.dataset = d1 + datasets[idx] + d2
+    #     args.hr_path = h1 + datasets[idx] + h2
+    #     args.sr_path = s1 + datasets[idx] + s2
+    #     psnr_ssim_dat()
+    #
+    # # 3d dat
+    # args.dataset = 'OABreast_3d'
+    # args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
+    # psnr_ssim_dat_3d()
+    #
+    # # mat 2d 输入文件路径
+    # path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_uint'
+    # for foldername in os.listdir(path):
+    #     args.dataset = 'usct' + '_' + foldername
+    #     args.hr_path = os.path.join(path, foldername, 'HR', foldername+'.mat')
+    #     args.sr_path = os.path.join(path, foldername, 'SR', 'X2', foldername+'.mat')
+    #     psnr_ssim_mat()
+    #
+    # # mat 3d 输入文件夹路径
+    # args.dataset = 'usct' + '_' + '3d'
+    # args.data_dir = r"D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_uint"
+    # psnr_ssim_mat_3d()

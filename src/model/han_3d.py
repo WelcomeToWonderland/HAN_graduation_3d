@@ -225,7 +225,9 @@ class RCAB(nn.Module):
         """
         for i in range(2):
             modules_body.append(conv(n_feat, n_feat, kernel_size, bias=bias))
-            if bn: modules_body.append(nn.BatchNorm2d(n_feat))
+            # if bn: print("bn")
+            # if bn: modules_body.append(nn.BatchNorm2d(n_feat))
+            if bn: modules_body.append(nn.BatchNorm3d(n_feat))
             if i == 0: modules_body.append(act)
         """
         3d修改：对CALayer修改
