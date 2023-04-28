@@ -437,10 +437,21 @@ if __name__ == '__main__':
     args.algorithm = 'bicubic'
 
     # png图片
-    args.dataset = 'Urban100'
-    args.hr_path = r'D:\workspace\dataset\Urban100\HR'
-    args.sr_path = r'D:\workspace\dataset\Urban100\SR\X2'
-    psnr_ssim_img()
+    datasets = ['Set5', 'Set14']
+    prefix = r'D:\workspace\dataset'
+    suffix_hr = r'HR'
+    suffix_sr = r'SR\X2'
+    for dataset in datasets:
+        args.dataset = dataset
+        args.hr_path = os.path.join(prefix, dataset, suffix_hr)
+        args.sr_path = os.path.join(prefix, dataset, suffix_sr)
+        psnr_ssim_img()
+
+
+    # args.dataset = 'Urban100'
+    # args.hr_path = r'D:\workspace\dataset\Urban100\HR'
+    # args.sr_path = r'D:\workspace\dataset\Urban100\SR\X2'
+    # psnr_ssim_img()
 
     # # args.dataset = r'Neg_07_Left_test'
     # # # args.hr_path = r'/root/autodl-tmp/dataset/OABreast/downing/Neg_07_Left_test/HR/MergedPhantom.DAT'

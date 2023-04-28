@@ -774,10 +774,20 @@ def mat_downsampling_x2_3d_every_other_point():
 if __name__ == '__main__':
     # png图片
     # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
-    args.lr_img_dir = r'D:\workspace\dataset\Urban100\LR'
-    args.sr_img_dir = r'D:\workspace\dataset\Urban100\SR'
+    # args.lr_img_dir = r'D:\workspace\dataset\Urban100\LR'
+    # args.sr_img_dir = r'D:\workspace\dataset\Urban100\SR'
     # bi_img_downsampling_x2()
-    bi_img_upsampling_x2()
+    # bi_img_upsampling_x2()
+
+    datasets = ['Set5', 'Set14']
+    prefix = r'D:\workspace\dataset'
+    suffix_lr = r'LR'
+    suffix_sr = r'SR'
+    for dataset in datasets:
+        args.dataset = dataset
+        args.lr_img_dir = os.path.join(prefix, dataset, suffix_lr)
+        args.sr_img_dir = os.path.join(prefix, dataset, suffix_sr)
+        bi_img_upsampling_x2()
 
     # oabreast 2d
     # 提供文件夹
@@ -799,11 +809,11 @@ if __name__ == '__main__':
 
     # # usct 2d
     # # 提供文件夹路径
-    # path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_uint'
+    # path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\every_other_points_2d_float'
     # for foldername in os.listdir(path):
     #     if foldername != 'HR':
     #         args.data_dir = os.path.join(path, foldername)
-    #         bi_mat_downsampling_x2()
+    #         mat_downsampling_x2_every_other_point()
     #         bi_mat_upsampling_x2()
     #
     # # # usct 3d
