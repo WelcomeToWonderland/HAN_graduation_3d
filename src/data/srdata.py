@@ -28,6 +28,11 @@ class SRData(data.Dataset):
         self.idx_scale = 0
         
         self._set_filesystem(args.dir_data)
+
+        """
+        读取文件的两种方式之一：以二进制的方式读取文件
+        为二进制文件创建文件夹
+        """
         if args.ext.find('img') < 0:
             path_bin = os.path.join(self.apath, 'bin')
             os.makedirs(path_bin, exist_ok=True)
@@ -35,6 +40,7 @@ class SRData(data.Dataset):
         list_hr, list_lr = self._scan()
         if args.ext.find('img') >= 0 or benchmark:
             self.images_hr, self.images_lr = list_hr, list_lr
+        # 不采用以下方式读取文件
         elif args.ext.find('sep') >= 0:
             os.makedirs(
                 self.dir_hr.replace(self.apath, path_bin),
@@ -62,14 +68,6 @@ class SRData(data.Dataset):
                     b = b.replace(self.ext[1], '.pt')
                     self.images_lr[i].append(b)
                     self._check_and_load(args.ext, l, b, verbose=True)
-
-        if train:
-            n_patches = args.batch_size * args.test_every
-            n_images = len(args.data_train) * len(self.images_hr)
-            if n_images == 0:
-                self.repeat = 0
-            else:
-                self.repeat = max(n_patches // n_images, 1)
 
     def _set_filesystem(self, dir_data):
         '''
@@ -148,21 +146,14 @@ class SRData(data.Dataset):
         return lr, hr, filename
 
     def _get_index(self, idx):
-        if self.train:
-            return idx % len(self.images_hr)
-        else:
-            return idx
+        # if self.train:
+        #     return idx % len(self.images_hr)
+        # else:
+        #     return idx
+        return idx
 
     # 函数-3
     def __len__(self):
-        """
-        if self.train:
-            return len(self.images_hr) * self.repeat
-        else:
-            return len(self.images_hr)
-
-        :return:
-        """
         return len(self.images_hr)
 
     # 未分类函数

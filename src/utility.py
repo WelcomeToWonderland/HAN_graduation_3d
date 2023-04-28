@@ -4,6 +4,7 @@ import time
 import datetime
 from multiprocessing import Process
 from multiprocessing import Queue
+from scipy import io
 
 import matplotlib
 matplotlib.use('Agg')
@@ -207,7 +208,13 @@ class checkpoint():
                 if not queue.empty():
                     filename, tensor = queue.get()
                     if filename is None: break
-                    imageio.imwrite(filename, tensor.numpy())
+                    _, ext = os.path.splitext(filename)
+                    if ext == '.mat':
+                        io.savemat(filename, {'f1' : tensor.numpy()})
+                    elif ext == '.DAT':
+                        tensor.numpy().tofile(filename)
+                    else:
+                        imageio.imwrite(filename, tensor.numpy())
 
         self.process = [
             Process(target=bg_target, args=(self.queue,)) \
@@ -252,15 +259,24 @@ class checkpoint():
             postfix = ('SR', 'LR', 'HR')
             for v, p in zip(save_list, postfix):
                 normalized = v[0].mul(255 / self.args.rgb_range)
-                tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
+                if self.args.is_3d:
+                    tensor_cpu = normalized.byte().permute(1, 2, 3, 0).cpu()
+                else:
+                    tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
                 """
                 添加文件后缀名
                 """
                 if self.args.is_3d:
-                    """
-                    oabreast 2d切片，保存处理结果在另一个函数中
-                    """
-                    self.queue.put(('{}{}.DAT'.format(filename, p), tensor_cpu))
+                    if self.args.dat:
+                        """
+                        oabreast 2d切片，保存处理结果在另一个函数中
+                        """
+                        self.queue.put(('{}{}.DAT'.format(filename, p), tensor_cpu))
+                    else:
+                        """
+                        usct 3d
+                        """
+                        self.queue.put(('{}{}.mat'.format(filename, p), tensor_cpu))
                 else:
                     self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
 
@@ -292,7 +308,10 @@ def quantize(img, rgb_range):
     round：四舍五入的保留小数，默认保留小数位为0，相当于取整；输入数据与输出数据的类型相同
     """
     # return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
-    return img.mul(pixel_range).clamp(0, 255).div(pixel_range).round()
+    if math.isclose(rgb_range, 1000.0):
+        return img.mul(pixel_range).clamp(0, 255).div(pixel_range)
+    else:
+        return img.mul(pixel_range).clamp(0, 255).div(pixel_range).round()
 
 def normalization(img, rgb_range):
     """
@@ -420,7 +439,7 @@ def make_optimizer(args, target, cpk):
     optimizer._register_scheduler(scheduler_class, **kwargs_scheduler)
     return optimizer
 
-def get_3d(filename, is_dat):
+def get_3d(filename):
     """
     输入dat和mat文件basename，返回三维
 

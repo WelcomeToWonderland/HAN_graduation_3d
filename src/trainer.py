@@ -12,6 +12,8 @@ import pdb
 from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
 
+import gc
+
 
 class Trainer():
     def __init__(self, args, loader, my_model, my_loss, ckp):
@@ -68,6 +70,10 @@ class Trainer():
             0 : idx_scale
             HAN模型没有set_scale函数，没有用
             """
+            # 清理内存
+            gc.collect()
+            torch.cuda.empty_cache()
+
             sr = self.model(lr, 0)
             loss = self.loss(sr, hr)
             """

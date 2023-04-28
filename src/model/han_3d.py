@@ -3,6 +3,7 @@ from model import common
 import torch
 import torch.nn as nn
 import pdb
+from src.Conv4d import Conv4d
 
 def make_model(args, parent=False):
     return HAN(args)
@@ -106,7 +107,7 @@ class CSAM_Module(nn.Module):
         3d修改
         """
         # self.conv = nn.Conv3d(1, 1, 3, 1, 1)
-        self.conv = nn.Conv4d(1, 1, 3, 1, 1)
+        self.conv = Conv4d(in_channels=1, out_channels=1, kernel_size=3, padding=1, stride=1)
         """        
         nn.Parameter将输入的张量转化为模型的参数，在学习中会被更新
         """
@@ -224,7 +225,9 @@ class RCAB(nn.Module):
         """
         for i in range(2):
             modules_body.append(conv(n_feat, n_feat, kernel_size, bias=bias))
-            if bn: modules_body.append(nn.BatchNorm2d(n_feat))
+            # if bn: print("bn")
+            # if bn: modules_body.append(nn.BatchNorm2d(n_feat))
+            if bn: modules_body.append(nn.BatchNorm3d(n_feat))
             if i == 0: modules_body.append(act)
         """
         3d修改：对CALayer修改
@@ -241,7 +244,7 @@ class RCAB(nn.Module):
 
 ## Residual Group (RG)
 class ResidualGroup(nn.Module):
-    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
+    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks, bn):
         super(ResidualGroup, self).__init__()
         """
         限制
@@ -253,7 +256,7 @@ class ResidualGroup(nn.Module):
         """
         modules_body = [
             RCAB(
-                conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
+                conv, n_feat, kernel_size, reduction, bias=True, bn=bn, act=nn.ReLU(True), res_scale=1) \
             for _ in range(n_resblocks)]
         modules_body.append(conv(n_feat, n_feat, kernel_size))
         self.body = nn.Sequential(*modules_body)
@@ -267,9 +270,11 @@ class ResidualGroup(nn.Module):
 class HAN(nn.Module):
     def __init__(self, args, conv=common.default_conv_3d):
         super(HAN, self).__init__()
+        print("Making model:han 3d...")
         """
         3d修改：更换conv
         """
+        bn = args.bn
         n_resgroups = args.n_resgroups
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
@@ -287,7 +292,7 @@ class HAN(nn.Module):
         # define body module
         modules_body = [
             ResidualGroup(
-                conv, n_feats, kernel_size, reduction, act=act, res_scale=args.res_scale, n_resblocks=n_resblocks) \
+                conv, n_feats, kernel_size, reduction, act=act, res_scale=args.res_scale, n_resblocks=n_resblocks, bn=bn) \
             for _ in range(n_resgroups)]
 
         modules_body.append(conv(n_feats, n_feats, kernel_size))
@@ -296,6 +301,8 @@ class HAN(nn.Module):
         modules_tail = [
             common.Upsampler_3d(conv, scale, n_feats, act=False),
             conv(n_feats, args.n_colors, kernel_size)]
+        # modules_tail = [
+        #     common.Upsampler_3d(conv, scale, n_feats, act=False)]
 
         self.head = nn.Sequential(*modules_head)
         self.body = nn.Sequential(*modules_body)
@@ -313,19 +320,18 @@ class HAN(nn.Module):
         # self.last = nn.Conv2d(n_feats*2, n_feats, 3, 1, 1)
         self.last = nn.Conv3d(n_feats*2, n_feats, 3, 1, 1)
         self.tail = nn.Sequential(*modules_tail)
+        # self.test = conv(n_feats, args.n_colors, kernel_size)
 
     def forward(self, x):
 
         x = self.head(x)
         res = x
-        #pdb.set_trace()
         """
         属性_modules以OrderDict的形式，返回所有子模块
         字典方法items()，返回包含字典中所有（key, value）元组的列表
         """
         for name, midlayer in self.body._modules.items():
             res = midlayer(res)
-            #print(name)
             """
             unsqueeze在指定位置，增加一个大小为1的维度，创建源tensor的视图，输入张量与输出张量共享内存，改变输出张量，输入张量也会变化
             unsqueeze(1) 中的”1“指的是第二个位置
@@ -358,10 +364,6 @@ class HAN(nn.Module):
         out1 = self.csa(out1)
         out = torch.cat([out1, out2], 1)
 
-        # test
-        # print(f"out1 : {out1.shape}")
-        # print(f"out2 : {out2.shape}")
-
         """      
         通过卷积操作，缩小一倍第二维度，从2*feat到1*feat
         这样结果就与最初的卷积层输出形状一致，可以完成元素相加        
@@ -371,7 +373,6 @@ class HAN(nn.Module):
         res：long skip、lam和csam的整合结果
         """
         res += x
-        #res = self.csa(res)
 
         x = self.tail(res)
 

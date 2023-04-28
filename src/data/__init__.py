@@ -49,10 +49,10 @@ class Data:
                                      '20220511T153240', '20220517T112745', '20220525T153940',
                                      '20220526T181025',
                                      '50525','52748']:
-                    if args.is_3d :
-                        m = import_module('data.usct_3d')
-                    else:
-                        m = import_module('data.usct')
+                    m = import_module('data.usct')
+                    datasets.append(getattr(m, 'USCT')(args, name=d))
+                elif module_name in ['USCT_3d_train', 'USCT_3d_test']:
+                    m = import_module('data.usct_3d')
                     datasets.append(getattr(m, 'USCT')(args, name=d))
                 # 其他数据集
                 else:
@@ -80,7 +80,6 @@ class Data:
             elif d in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
                        'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
                        'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
-
                 if args.is_3d:
                     m = import_module('data.oabreast_3d')
                 else:
@@ -91,10 +90,10 @@ class Data:
                                  '20220511T153240', '20220517T112745', '20220525T153940',
                                  '20220526T181025',
                                  '50525', '52748']:
-                if args.is_3d:
-                    m = import_module('data.usct_3d')
-                else:
-                    m = import_module('data.usct')
+                m = import_module('data.usct')
+                testset = getattr(m, 'USCT')(args, train=False, name=d)
+            elif d in ['USCT_3d_train', 'USCT_3d_test']:
+                m = import_module('data.usct_3d')
                 testset = getattr(m, 'USCT')(args, train=False, name=d)
             else:
                 module_name = d if d.find('DIV2K-Q') < 0 else 'DIV2KJPEG'

@@ -149,14 +149,42 @@ def get_patch_3d(*args, patch_size=96, scale=2, multi=False, input_large=False):
 
 def set_channel(*args, n_channels=3):
     def _set_channel(img):
-
+        # 确保通道维度的存在
         if img.ndim == 2:
             """
             如果img为二维矩阵，即灰度图，增加一个维度，使其成为三维矩阵
             """
             img = np.expand_dims(img, axis=2)
-
+        # 取通道维度大小
         c = img.shape[2]
+        # 判断通道维度是否符合需求
+        """
+        只能设置为1或3
+        """
+        if n_channels == 1 and c == 3:
+            img = np.expand_dims(sc.rgb2ycbcr(img)[:, :, 0], 2)
+        elif n_channels == 3 and c == 1:
+            img = np.concatenate([img] * n_channels, 2)
+
+        return img
+
+    return [_set_channel(a) for a in args]
+
+def set_channel_3d(*args, n_channels=3):
+    def _set_channel(img):
+        """
+        在_load_file_函数中，已经完成对没有通道维度的像素矩阵的扩展
+        模型要求，输入数据具有通道矩阵
+
+        实际效果：没有
+        数据通道数为1，输入的通道数要求也是1
+        """
+        # 确保通道维度的存在
+        if img.ndim == 3:
+            img = np.expand_dims(img, axis=3)
+        # 取通道维度大小
+        c = img.shape[3]
+        # 判断通道维度是否符合需求
         if n_channels == 1 and c == 3:
             img = np.expand_dims(sc.rgb2ycbcr(img)[:, :, 0], 2)
         elif n_channels == 3 and c == 1:
@@ -177,6 +205,7 @@ def np2Tensor(*args, rgb_range=255, is_3d=False):
     :return:
     """
     def _np2Tensor(img):
+
         np_transpose = np.ascontiguousarray(img.transpose((2, 0, 1))) if not is_3d \
             else np.ascontiguousarray(img.transpose((3, 0, 1, 2)))
         tensor = torch.from_numpy(np_transpose).float()
@@ -224,11 +253,17 @@ def augment(*args, hflip=True, rot=True):
         # if rot90: img = img.transpose(1, 0, 2)
         if hflip: img = img[:, ::-1]
         if vflip: img = img[::-1, :]
-        if rot90: img = img.transpose(1, 0)
+        """
+        技能处理二维图像，也能处理三维图像
+        """
+        if rot90:
+            if img.ndim == 3:
+                img = img.transpose(1, 0, 2)
+            if img.ndim == 4:
+                img = img.transpose(2, 1, 0, 3)
         
         return img
 
     return [_augment(a) for a in args]
-
 
 

@@ -104,6 +104,8 @@ parser.add_argument('--RDNconfig', type=str, default='B',
                     help='parameters config of RDN. (Use in RDN)')
 
 # Option for Residual channel attention network (RCAN)
+parser.add_argument('--bn', action='store_true',
+                    help='use batch normalization')
 parser.add_argument('--n_resgroups', type=int, default=10,
                     help='number of residual groups')
 """

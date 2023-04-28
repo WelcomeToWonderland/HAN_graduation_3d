@@ -9,13 +9,51 @@ from scipy import io
 from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
 from scipy.ndimage import zoom
+import torch.nn as nn
+import math
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
-path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\50525\HR\50525.mat'
+path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\20220819T162347\HR\20220819T162347.mat'
 file = io.loadmat(path)
 data = file['f1']
-hist, bins = np.histogram(data)
-print(f"hist : {hist}")
-print(f"bins : {bins}")
+print(np.max(data))
+print(data.shape)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # 精简

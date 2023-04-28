@@ -209,6 +209,7 @@ def bi_img_upsampling_x2():
         sr_image_2x = cv2.resize(lr_img, (0, 0), fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext), sr_image_2x)
 
+
 def bi_dat_downsampling_x2():
     """
     BI : 仅bicubic
@@ -337,7 +338,7 @@ def bi_dat_downsampling_x2_3d():
         1 : 双线性插值
         3 : 双三次插值
         """
-        lr_img = zoom(hr_img, (0.5, 0.5, 0.5), order=1)
+        lr_img = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
         lr_img =quantize(lr_img, 4)
         # after shape
         print(lr_img.shape)
@@ -366,12 +367,13 @@ def bi_dat_upsampling_x2_3d():
         # before shape
         print(lr_img.shape)
         # upsample
-        sr_img = zoom(lr_img, (2, 2, 2), order=1)
+        sr_img = zoom(lr_img, (2, 2, 2), order=3)
         sr_img = quantize(sr_img, 4)
         # after shape
         print(sr_img.shape)
         # save
         sr_img.tofile(os.path.join(sr_image_dir, filename))
+
 
 def bi_mat_downsampling_x2():
     """
@@ -404,27 +406,34 @@ def bi_mat_downsampling_x2():
         # 获取hr
         file = io.loadmat(os.path.join(hr_dir, filename))
         hr_img = file['f1']
+        # 转换数据类型
+        flag = (hr_img.dtype == np.uint16)
+        if flag:
+            hr_img.astype(np.float64)
         # 进行下采样
         shape = hr_img.shape
         print(f"downsample before : {shape}")
-        hist, bins = np.histogram(hr_img.flatten(),density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(hr_img.flatten(),density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
         lr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
         for idx in range(shape[2]):
             lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
         print(f"downsample after : {lr_img_2x.shape}")
-        hist, bins = np.histogram(lr_img_2x.flatten(),density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(lr_img_2x.flatten(),density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
         """
         经过cv2.resize处理，dtype为浮点数
         """
         lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
+        # 转换数据类型
+        if flag:
+            lr_img_2x.astype(np.uint16)
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
 
@@ -459,31 +468,38 @@ def bi_mat_upsampling_x2():
         # 获取lr
         file = io.loadmat(os.path.join(lr_dir, filename))
         lr_img = file['imgout']
+        # 转换数据类型
+        flag = (lr_img.dtype == np.uint16)
+        if flag:
+            lr_img.astype(np.float64)
         # 进行下采样
         shape = lr_img.shape
         print(f"downsample before : {shape}")
 
-        hist, bins = np.histogram(lr_img.flatten(), density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(lr_img.flatten(), density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         sr_img_2x = np.zeros((shape[0]*2, shape[1]*2, shape[2]))
         for idx in range(shape[2]):
             sr_img_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         print(f"downsample after : {sr_img_2x.shape}")
 
-        hist, bins = np.histogram(sr_img_2x.flatten(), density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(sr_img_2x.flatten(), density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         """
         经过cv2.resize处理，dtype为浮点数
         """
         sr_img_2x = np.clip(0.0, 1.0e+3, sr_img_2x)
+        # 转换数据类型
+        if flag:
+            sr_img_2x.astype(np.uint16)
         # 保存sr文件
         io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
 
@@ -518,6 +534,10 @@ def bi_mat_downsampling_x2_3d():
         # 获取hr
         file = io.loadmat(os.path.join(hr_dir, filename))
         hr_img = file['f1']
+        # 转换数据类型
+        flag = (hr_img.dtype == np.uint16)
+        if flag:
+            hr_img.astype(np.float64)
         # 进行下采样
         shape = hr_img.shape
         print(f"downsample before : {shape}")
@@ -531,7 +551,7 @@ def bi_mat_downsampling_x2_3d():
         # lr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
         # for idx in range(shape[2]):
         #     lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-        lr_img_2x = zoom(hr_img, (0.5, 0.5, 0.5), order=1)
+        lr_img_2x = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
         print(f"downsample after : {lr_img_2x.shape}")
 
         hist, bins = np.histogram(lr_img_2x.flatten(),density=True)
@@ -544,6 +564,9 @@ def bi_mat_downsampling_x2_3d():
         经过cv2.resize处理，dtype为浮点数
         """
         lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
+        # 转换数据类型
+        if flag:
+            lr_img_2x.astype(np.float64)
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
 
@@ -578,42 +601,193 @@ def bi_mat_upsampling_x2_3d():
         # 获取lr
         file = io.loadmat(os.path.join(lr_dir, filename))
         lr_img = file['imgout']
+        # 转换数据类型
+        flag = (lr_img.dtype == np.uint16)
+        if flag:
+            lr_img.astype(np.float64)
         # 进行下采样
         shape = lr_img.shape
         print(f"downsample before : {shape}")
 
-        hist, bins = np.histogram(lr_img.flatten(),density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(lr_img.flatten(),density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         # sr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
         # for idx in range(shape[2]):
         #     sr_img_2x[:, :, idx] = cv2.resize(lr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-        sr_img_2x = zoom(lr_img, (2, 2, 2), order=1)
+        sr_img_2x = zoom(lr_img, (2, 2, 2), order=3)
         print(f"downsample after : {sr_img_2x.shape}")
 
-        hist, bins = np.histogram(sr_img_2x.flatten(),density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(sr_img_2x.flatten(),density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         """
         经过cv2.resize处理，dtype为浮点数
         """
         sr_img_2x = np.clip(0, 1.0e3, sr_img_2x)
+        # 转换数据类型
+        if flag:
+            sr_img_2x.astype(np.float64)
         # 保存sr文件
         io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
+
+def mat_downsampling_x2_every_other_point():
+    """
+    间隔取点
+    提供data_dir
+    """
+    print("\nbi_mat_downsampling_x2_every_other_point")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    hr_dir = os.path.join(args.data_dir, 'HR')
+    hr_names = os.listdir(hr_dir)
+    if len(hr_names) == 0:
+        print(f"no hr files, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    print(f"hr_dir : {hr_dir}")
+    print(f"lr_dir : {lr_dir}")
+    # 建立LR文件夹
+    os.makedirs(lr_dir, exist_ok=True)
+    # 支持文件类型
+    supported_img_formats = (".mat")
+    # 开始下采样
+    for filename in hr_names:
+        print(filename)
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取hr
+        file = io.loadmat(os.path.join(hr_dir, filename))
+        hr_img = file['f1']
+        # 转换数据类型
+        flag = (hr_img.dtype == np.uint16)
+        if flag:
+            hr_img.astype(np.float64)
+        # 构建lr容器
+        shape = hr_img.shape
+        print(f"downsample before : {shape}")
+        # hist, bins = np.histogram(hr_img.flatten(), density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        lr_img_2x = np.zeros((shape[0] // 2, shape[1] // 2, shape[2]))
+        # downsampling
+        for ih in range(0, shape[0], 2):
+            for iw in range(0, shape[1], 2):
+                for idepth in range(shape[2]):
+                    lr_img_2x[ih//2, iw//2, idepth] = hr_img[ih, iw, idepth]
+        # for idx in range(shape[2]):
+        #     lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        print(f"downsample after : {lr_img_2x.shape}")
+        # hist, bins = np.histogram(lr_img_2x.flatten(), density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        """
+        经过cv2.resize处理，dtype为浮点数
+        """
+        lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
+        # 转换数据类型
+        if flag:
+            lr_img_2x.astype(np.float64)
+        # 保存lr文件
+        io.savemat(os.path.join(lr_dir, filename), {'imgout': lr_img_2x})
+
+def mat_downsampling_x2_3d_every_other_point():
+    """
+    间隔取点
+    提供data_dir
+    """
+    print("\nbi_mat_downsampling_x2_3d_every_other_point")
+    # 判定path是否合理
+    print(f"data_dir : {args.data_dir}")
+    if not os.path.isdir(args.data_dir):
+        print(f"data_dir doesn`t exist, function terminates")
+        return
+    hr_dir = os.path.join(args.data_dir, 'HR')
+    hr_names = os.listdir(hr_dir)
+    if len(hr_names) == 0:
+        print(f"no hr files, function terminates")
+        return
+    lr_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    print(f"hr_dir : {hr_dir}")
+    print(f"lr_dir : {lr_dir}")
+    # 建立LR文件夹
+    os.makedirs(lr_dir, exist_ok=True)
+    # 支持文件类型
+    supported_img_formats = (".mat")
+    # 开始下采样
+    for filename in hr_names:
+        print(filename)
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取hr
+        file = io.loadmat(os.path.join(hr_dir, filename))
+        hr_img = file['f1']
+        # 转换数据类型
+        flag = (hr_img.dtype == np.uint16)
+        if flag:
+            hr_img.astype(np.float64)
+        # 构建lr容器
+        shape = hr_img.shape
+        print(f"downsample before : {shape}")
+        # hist, bins = np.histogram(hr_img.flatten(), density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        lr_img_2x = np.zeros((shape[0] // 2, shape[1] // 2, shape[2]//2))
+        # downsampling
+        for ih in range(0, shape[0], 2):
+            for iw in range(0, shape[1], 2):
+                for idepth in range(0, shape[2], 2):
+                    lr_img_2x[ih//2, iw//2, idepth//2] = hr_img[ih, iw, idepth]
+        # for idx in range(shape[2]):
+        #     lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        print(f"downsample after : {lr_img_2x.shape}")
+        # hist, bins = np.histogram(lr_img_2x.flatten(), density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        """
+        经过cv2.resize处理，dtype为浮点数
+        """
+        lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
+        # 转换数据类型
+        if flag:
+            lr_img_2x.astype(np.float64)
+        # 保存lr文件
+        io.savemat(os.path.join(lr_dir, filename), {'imgout': lr_img_2x})
 
 if __name__ == '__main__':
     # png图片
     # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
-    # args.lr_img_dir = 'D:\workspace\dataset\Manga109\clipping\LR'
-    # args.sr_img_dir = 'D:\workspace\dataset\Manga109\clipping\SR'
+    # args.lr_img_dir = r'D:\workspace\dataset\Urban100\LR'
+    # args.sr_img_dir = r'D:\workspace\dataset\Urban100\SR'
     # bi_img_downsampling_x2()
     # bi_img_upsampling_x2()
+
+    datasets = ['Set5', 'Set14']
+    prefix = r'D:\workspace\dataset'
+    suffix_lr = r'LR'
+    suffix_sr = r'SR'
+    for dataset in datasets:
+        args.dataset = dataset
+        args.lr_img_dir = os.path.join(prefix, dataset, suffix_lr)
+        args.sr_img_dir = os.path.join(prefix, dataset, suffix_sr)
+        bi_img_upsampling_x2()
 
     # oabreast 2d
     # 提供文件夹
@@ -633,19 +807,19 @@ if __name__ == '__main__':
     # bi_dat_downsampling_x2_3d()
     # bi_dat_upsampling_x2_3d()
 
-    # usct 2d
-    # 提供文件夹路径
-    path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d'
-    for foldername in os.listdir(path):
-        if foldername != 'HR':
-            args.data_dir = os.path.join(path, foldername)
-            bi_mat_downsampling_x2()
-            bi_mat_upsampling_x2()
-
-    # # usct 3d
+    # # usct 2d
     # # 提供文件夹路径
-    args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d'
-    bi_mat_downsampling_x2_3d()
-    bi_mat_upsampling_x2_3d()
+    # path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\every_other_points_2d_float'
+    # for foldername in os.listdir(path):
+    #     if foldername != 'HR':
+    #         args.data_dir = os.path.join(path, foldername)
+    #         mat_downsampling_x2_every_other_point()
+    #         bi_mat_upsampling_x2()
+    #
+    # # # usct 3d
+    # # # 提供文件夹路径
+    # args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_uint'
+    # bi_mat_downsampling_x2_3d()
+    # bi_mat_upsampling_x2_3d()
 
 
