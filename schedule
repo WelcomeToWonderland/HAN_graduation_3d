@@ -90,6 +90,7 @@ python main.py --bn --load div2k_urban100_bn --resume -1 --n_GPUs 1 --epoch 250 
 
 apt-get
 ubantu包管理工具
+
 需要管理员权限：sudo apt-get
 apt ： advanced packaging tool
 
