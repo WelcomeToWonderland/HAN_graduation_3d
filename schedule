@@ -69,10 +69,14 @@ python main.py --lr 3.0e-5 --n_GPUs 1 --template HAN --epochs 250 --scale 2 --sa
 python main.py --bn --save HANx2_usct_2d_bn --lr 1.0e-4 --n_GPUs 1 --template HAN --epochs 3 --scale 2 --save_suffix HANx2_usct_2d --reset --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT_2d --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+52748+20220526T181025+20220525T153940 --data_test 20220511T153240+20220517T112745+50525 --is_2d --rgb_range 1000 --n_colors 1
 python main.py --bn --load HANx2_usct_2d_bn_lr_7 --resume -1 --lr 7.0e-5 --n_GPUs 1 --template HAN --epochs 250 --scale 2 --save_results --print_every 10 --patch_size 64 --batch_size 16 --dir_data /root/autodl-tmp/dataset/USCT_2d --data_train 20220510T153337+20220608T172601+20220809T140229+20221114T153716+20221116T164200+52748+20220526T181025+20220525T153940+20220819T162347 --data_test 20220511T153240+20220517T112745+50525 --is_2d --rgb_range 1000 --n_colors 1
 
+han 3d 2
+cd /workspace/projects/HAN_3d_26185/src
+python main.py --bn --lr 3.0e-5 --save HANx2_usct_3d_bn_other_lr_3 --epochs 250 --dir_data /workspace/datasets/USCT_3d/every_other_points_3d --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
+
 han 3d 4
 cd /root/autodl-tmp/project/HAN_3d/src
 begin
-python main.py --bn --lr 5.0e-5 --n_GPUs 1 --template HAN --epochs 250 --scale 2 --save HANx2_usct_3d_bn_lr_5 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --dir_data /root/autodl-tmp/dataset --data_train USCT_3d_train --data_test USCT_3d_test --is_3d --rgb_range 1000 --n_colors 1
+python main.py --bn --lr 3.0e-5 --save HANx2_usct_3d_bn_other_lr_3 --epochs 250 --dir_data /workspace/datasets/USCT_3d/every_other_points_3d --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
 resume
 python main.py --bn --lr 5.0e-5 --n_GPUs 1 --template HAN --epochs 250 --scale 2 --load HANx2_usct_3d_bn_lr_5 --resume -1 --save_results --print_every 1 --patch_size 64 --batch_size 2 --dir_data /root/autodl-tmp/dataset --data_train USCT_3d_train --data_test USCT_3d_test --is_3d --rgb_range 1000 --n_colors 1
 
