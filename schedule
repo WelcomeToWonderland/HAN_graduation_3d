@@ -72,7 +72,7 @@ python main.py --bn --load HANx2_usct_2d_bn_lr_7 --resume -1 --lr 7.0e-5 --n_GPU
 han 3d 2
 adamw 1e-4
 cd /workspace/projects/HAN_3d_26185/src
-python main.py --optimizer ADAMW --weight_decay 1e-4 --bn --lr 5.0e-5 --save HANx2_usct_3d_bn_other_lr_5 --epochs 250 --dir_data /workspace/datasets/USCT_3d/every_other_points_3d --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
+python main.py --optimizer ADAMW --weight_decay 1e-5 --bn --lr 5.0e-5 --save HANx2_usct_3d_bn_other_lr_5_adamw_1 --epochs 250 --dir_data /workspace/datasets/USCT_3d/every_other_points_3d --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
 
 han 3d 4
 cd /root/autodl-tmp/project/HAN_3d/src
