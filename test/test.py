@@ -13,77 +13,33 @@ import torch.nn as nn
 import math
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-
-path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\20220819T162347\HR\20220819T162347.mat'
-file = io.loadmat(path)
-data = file['f1']
-print(np.max(data))
-print(data.shape)
+import random
+from scipy.ndimage import rotate
 
 
+def augment(data):
+    if random.random() < 0.5:
+        data = data[::-1]
+    if random.random() < 0.5:
+        data = data[:, ::-1]
 
+    if np.ndim(data)==3 and random.random() < 0.5:
+        data = data[:, :, ::-1]
+    if random.random() < 0.5:
+        angle = random.uniform(0, 360)
+        data = rotate(data, angle=angle, reshape=False, mode='nearest')
+    # if random.random() < 0.5:
+    #     angle = random.uniform(0, 360)
+    #     data = rotate(data, angle=angle, axes=1, reshape=True, mode='nearest')
+    # if random.random() < 0.5:
+    #     angle = random.uniform(0, 360)
+    #     data = rotate(data, angle=angle, axes=2, reshape=True, mode='nearest')
+    return data
 
+# data = np.ndarray(shape=(4, 5, 6))
+# for idx in range(10):
+#     print(augment(data).shape)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # 精简
-# print(f"\n2d")
-# path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\20221116T164200\HR\20221116T164200.mat'
-# file = io.loadmat(path)
-# hr = file['f1']
-# shape = hr.shape
-# lr = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
-# for idx in range(shape[2]):
-#     lr[..., idx] = cv2.resize(hr[..., idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-# lr = np.clip(0.0, 1.0e3, lr)
-# sr = np.zeros(hr.shape)
-# for idx in range(hr.shape[2]):
-#     sr[..., idx] = cv2.resize(lr[..., idx], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-# sr = np.clip(0.0, 1.0e3, sr)
-# psnr = peak_signal_noise_ratio(hr, sr, data_range=1.0e3)
-# ssim = structural_similarity(hr, sr, data_range=1.0e3, multichannel=True)
-# print(f"psnr : {psnr}")
-# print(f"ssim : {ssim}")
-#
-# print(f"\n3d")
-# path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\2d\20221116T164200\HR\20221116T164200.mat'
-# file = io.loadmat(path)
-# hr = file['f1']
-# lr = zoom(hr, (0.5, 0.5, 0.5), order=1)
-# lr = np.clip(0.0, 1.0e3, lr)
-# sr = zoom(lr, (2, 2, 2), order=1)
-# sr = np.clip(0.0, 1.0e3, sr)
-# psnr = peak_signal_noise_ratio(hr, sr, data_range=1.0e3)
-# ssim = structural_similarity(hr, sr, data_range=1.0e3, multichannel=True)
-# print(f"psnr : {psnr}")
-# print(f"ssim : {ssim}")
+data = np.ndarray(shape=(9, 10))
+for idx in range(10):
+    print(augment(data).shape)
