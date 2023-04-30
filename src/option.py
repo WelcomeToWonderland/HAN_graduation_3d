@@ -152,7 +152,7 @@ parser.add_argument('--decay', type=str, default='200',
 parser.add_argument('--gamma', type=float, default=0.5,
                     help='learning rate decay factor for step decay')
 parser.add_argument('--optimizer', default='ADAM',
-                    choices=('SGD', 'ADAM', 'RMSprop'),
+                    choices=('SGD', 'ADAM', 'ADAMW', 'RMSprop'),
                     help='optimizer to use (SGD | ADAM | RMSprop)')
 parser.add_argument('--momentum', type=float, default=0.9,
                     help='SGD momentum')
