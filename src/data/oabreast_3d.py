@@ -9,7 +9,7 @@ from utility import get_3d
 class OABreast(data.Dataset):
     # 函数组-1
     def __init__(self, args, name='', train=True, benchmark=False):
-        print('Making dataset usct 3d...')
+        print('Making dataset oabreast 3d...')
         self.args = args
         self.name = name
         self.train = train
@@ -59,15 +59,8 @@ class OABreast(data.Dataset):
                 self.repeat = max(n_patches // n_images, 1)
 
     def _set_filesystem(self, dir_data):
-        '''
-        去掉了input_large相关语句（benchmark中也去掉了）
-
-        记录相关路径，但是没有根据路径创建文件
-        :param dir_data:
-        :return:
-        '''
         self.apath = os.path.join(dir_data, self.name)
-        scale_dir = f'X{self.scale[0]}'
+        # scale_dir = f'X{self.scale[0]}'
         self.dir_lr = os.path.join(dir_data, self.name, 'LR')
         self.dir_hr = os.path.join(dir_data, self.name, 'HR')
         self.ext = '.DAT'
