@@ -38,7 +38,8 @@ class Data:
                 # oabreast数据集
                 if module_name in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
                                    'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
-                                   'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
+                                   'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test',
+                                   'OABreast_3d_train', 'OABreast_3d_test']:
                     if args.is_3d :
                         m = import_module('data.oabreast_3d')
                     else:
@@ -79,7 +80,8 @@ class Data:
             # oabreast修改
             elif d in ['Neg_07_Left', 'Neg_35_Left', 'Neg_47_Left',
                        'Neg_07_Left_train', 'Neg_35_Left_train', 'Neg_47_Left_train',
-                       'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test']:
+                       'Neg_07_Left_test', 'Neg_35_Left_test', 'Neg_47_Left_test',
+                       'OABreast_3d_train', 'OABreast_3d_test']:
                 if args.is_3d:
                     m = import_module('data.oabreast_3d')
                 else:
