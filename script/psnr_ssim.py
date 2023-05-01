@@ -444,12 +444,23 @@ if __name__ == '__main__':
     # png图片
     # datasets = ['Set5', 'Set14', 'Urban100', 'Manga109']
     # prefix_hr = r'/root/autodl-tmp/dataset'
-    # prefix_sr = r'/root/autodl-tmp/project/HAN_for_3d/experiment/div2k_urban100_bn_latest/results-'
+    # prefix_sr = r'/root/autodl-tmp/project/HAN_for_3d/experiment/div2k_urban100_bn_best/results-'
     # suffix_hr = r'HR'
     # for dataset in datasets:
     #     args.dataset = dataset
     #     args.hr_path = os.path.join(prefix_hr, dataset, suffix_hr)
     #     args.sr_path = prefix_sr + dataset
+    #     psnr_ssim_img()
+
+    # datasets = ['Set5', 'Set14', 'Urban100', 'Manga109']
+    # prefix_hr = r'D:\workspace\dataset'
+    # prefix_sr = r'D:\workspace\dataset'
+    # suffix_hr = r'HR'
+    # suffix_sr = r'SR/X2'
+    # for dataset in datasets:
+    #     args.dataset = dataset
+    #     args.hr_path = os.path.join(prefix_hr, dataset, suffix_hr)
+    #     args.sr_path = os.path.join(prefix_sr, dataset, suffix_sr)
     #     psnr_ssim_img()
 
     # args.dataset = 'Urban100'
@@ -479,10 +490,10 @@ if __name__ == '__main__':
     #     psnr_ssim_dat()
 
 
-    # args.dataset = r'Neg_07_Left_test'
-    # args.hr_path = r'/root/autodl-tmp/dataset/OABreast_2d/Neg_07_Left_test/HR/MergedPhantom.DAT'
-    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/oabreast_new_start_best/results-Neg_07_Left_test/Neg_07_Left_test_x2_SR.DAT'
-    # psnr_ssim_dat()
+    args.dataset = r'Neg_07_Left_test'
+    args.hr_path = r'/root/autodl-tmp/dataset/OABreast_2d/Neg_07_Left_test/HR/MergedPhantom.DAT'
+    args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/oabreast_2d_transfer_learning/results-Neg_07_Left_test/Neg_07_Left_test_x2_SR.DAT'
+    psnr_ssim_dat()
 
     #
     # # 3d dat
@@ -499,14 +510,14 @@ if __name__ == '__main__':
     #     psnr_ssim_mat()
 
     # rm -rf /root/autodl-tmp/project/HAN_for_3d/script/psnr_ssim_logs/*
-    datasets = ['20220511T153240', '20220517T112745', '50525']
-    prefix_sr = r'/root/autodl-tmp/project/HAN_for_3d/experiment/HANx2_usct_2d_bn_other_lr_3'
-    prefix_hr = r'/root/autodl-tmp/dataset/USCT_2d/every_other_points_2d_float'
-    for dataset in datasets:
-        args.dataset = 'usct' + '_' + dataset
-        args.sr_path = os.path.join(prefix_sr, 'results-'+dataset, dataset+'_x2_SR.mat')
-        args.hr_path = os.path.join(prefix_hr, dataset, 'HR', dataset+'.mat')
-        psnr_ssim_mat()
+    # datasets = ['20220511T153240', '20220517T112745', '50525']
+    # prefix_sr = r'/root/autodl-tmp/project/HAN_for_3d/experiment/HANx2_usct_2d_bn_other_lr_3'
+    # prefix_hr = r'/root/autodl-tmp/dataset/USCT_2d/every_other_points_2d_float'
+    # for dataset in datasets:
+    #     args.dataset = 'usct' + '_' + dataset
+    #     args.sr_path = os.path.join(prefix_sr, 'results-'+dataset, dataset+'_x2_SR.mat')
+    #     args.hr_path = os.path.join(prefix_hr, dataset, 'HR', dataset+'.mat')
+    #     psnr_ssim_mat()
     #
     # # mat 3d 输入HR和SR文件夹路径
     # args.dataset = 'usct' + '_' + '3d'
@@ -514,6 +525,8 @@ if __name__ == '__main__':
     # psnr_ssim_mat_3d()
 
     # args.dataset = 'usct_3d' + '_' + 'test_other'
-    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other/results-USCT_3d_test'
-    # args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/USCT_3d_test/HR'
+    # # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other/results-USCT_3d_test'
+    # # args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/USCT_3d_test/HR'
+    # args.sr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/50525/SR/X2'
+    # args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/50525/HR'
     # psnr_ssim_mat_3d()
