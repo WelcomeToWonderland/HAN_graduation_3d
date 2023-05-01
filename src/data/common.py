@@ -257,23 +257,23 @@ def augment(*args, hflip=True, rot=True):
         """
         既能处理二维图像，也能处理三维图像
         """
-        if img.ndim == 3 and rot90:
-            img = img.transpose(1, 0, 2)
-        # if rot90:
-        #     if img.ndim == 3:
-        #         img = img.transpose(1, 0, 2)
-        #     if img.ndim == 4:
-        #         img = img.transpose(2, 1, 0, 3)
-        if img.ndim == 4 and random.random() < 0.5:
-            angle = random.uniform(0, 360)
-            """
-            不清楚最后的通道维度，会对旋转操作产生什么影响
-            仅限单通道的usct，可以这样去除通道维度
-            """
-            img = img[..., 0]
-            img = rotate(img, angle=angle, reshape=False, mode='nearest')
-            # 加上通道维度
-            img = np.expand_dims(img, axis=img.ndim)
+        # if img.ndim == 3 and rot90:
+        #     img = img.transpose(1, 0, 2)
+        if rot90:
+            if img.ndim == 3:
+                img = img.transpose(1, 0, 2)
+            if img.ndim == 4:
+                img = img.transpose(2, 1, 0, 3)
+        # if img.ndim == 4 and random.random() < 0.5:
+        #     angle = random.uniform(0, 360)
+        #     """
+        #     不清楚最后的通道维度，会对旋转操作产生什么影响
+        #     仅限单通道的usct，可以这样去除通道维度
+        #     """
+        #     img = img[..., 0]
+        #     img = rotate(img, angle=angle, reshape=False, mode='nearest')
+        #     # 加上通道维度
+        #     img = np.expand_dims(img, axis=img.ndim)
         
         return img
 
