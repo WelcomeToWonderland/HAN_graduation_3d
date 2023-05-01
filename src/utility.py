@@ -258,9 +258,17 @@ class checkpoint():
 
             postfix = ('SR', 'LR', 'HR')
             for v, p in zip(save_list, postfix):
-                normalized = v[0].mul(255 / self.args.rgb_range)
+                # normalized = v[0].mul(255 / self.args.rgb_range)
+                normalized = v[0]
                 if self.args.is_3d:
-                    tensor_cpu = normalized.byte().permute(1, 2, 3, 0).cpu()
+                    # tensor_cpu = normalized.byte().permute(1, 2, 3, 0).cpu()
+                    tensor_cpu = normalized.permute(1, 2, 3, 0).cpu()
+                    """
+                    去除原本的通道维度
+                    """
+                    # tensor_cpu = np.squeeze(tensor_cpu, axis=3)
+                    tensor_cpu = tensor_cpu[..., 0]
+                    # print(f"tensor_cpu shape : {tensor_cpu.shape}")
                 else:
                     tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
                 """

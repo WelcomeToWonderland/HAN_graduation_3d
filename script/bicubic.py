@@ -779,15 +779,15 @@ if __name__ == '__main__':
     # bi_img_downsampling_x2()
     # bi_img_upsampling_x2()
 
-    datasets = ['Set5', 'Set14']
-    prefix = r'D:\workspace\dataset'
-    suffix_lr = r'LR'
-    suffix_sr = r'SR'
-    for dataset in datasets:
-        args.dataset = dataset
-        args.lr_img_dir = os.path.join(prefix, dataset, suffix_lr)
-        args.sr_img_dir = os.path.join(prefix, dataset, suffix_sr)
-        bi_img_upsampling_x2()
+    # datasets = ['Set5', 'Set14']
+    # prefix = r'D:\workspace\dataset'
+    # suffix_lr = r'LR'
+    # suffix_sr = r'SR'
+    # for dataset in datasets:
+    #     args.dataset = dataset
+    #     args.lr_img_dir = os.path.join(prefix, dataset, suffix_lr)
+    #     args.sr_img_dir = os.path.join(prefix, dataset, suffix_sr)
+    #     bi_img_upsampling_x2()
 
     # oabreast 2d
     # 提供文件夹
@@ -816,10 +816,12 @@ if __name__ == '__main__':
     #         mat_downsampling_x2_every_other_point()
     #         bi_mat_upsampling_x2()
     #
-    # # # usct 3d
-    # # # 提供文件夹路径
-    # args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_uint'
+    # usct 3d
+    # 提供文件夹路径
+    args.data_dir = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d_float_test/'
     # bi_mat_downsampling_x2_3d()
-    # bi_mat_upsampling_x2_3d()
+    mat_downsampling_x2_3d_every_other_point()
+    bi_mat_upsampling_x2_3d()
+
 
 

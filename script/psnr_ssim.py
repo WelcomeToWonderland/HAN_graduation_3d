@@ -33,7 +33,7 @@ def psnr_ssim_img():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{args.algorithm}_{dataset}_{now}")
     print(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
     # log
@@ -118,9 +118,9 @@ def psnr_ssim_dat():
 
     print(args.sr_path)
     print(args.hr_path)
-    idx = dataset.index('_')
-    basename = dataset[idx+1:]
-    nx, ny, nz = get_3d(basename)
+    # idx = dataset.index('_')
+    # basename = dataset[idx+1:]
+    nx, ny, nz = get_3d(dataset)
     sr_dat = np.fromfile(args.sr_path, dtype=np.uint8)
     sr_dat = sr_dat.reshape(nx, ny, nz)
     hr_dat = np.fromfile(args.hr_path, dtype=np.uint8)
@@ -354,7 +354,7 @@ def psnr_ssim_mat_3d():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # make dirs
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{args.algorithm}_{dataset}_{now}")
     os.makedirs(log_dir, exist_ok=True)
     print(log_dir)
     # tb
@@ -362,8 +362,11 @@ def psnr_ssim_mat_3d():
     # log
     log_file = open(log_dir + r"/log.txt", 'x')
 
-    hr_dir = os.path.join(args.data_dir, 'HR')
-    sr_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    hr_dir = args.hr_path
+    sr_dir = args.sr_path
+
+    # hr_dir = os.path.join(args.data_dir, 'HR')
+    # sr_dir = os.path.join(args.data_dir, 'SR', 'X2')
     print(f"hr_dir : {hr_dir}")
     print(f"sr_dir : {sr_dir}")
     hr_list = sorted(os.listdir(hr_dir))
@@ -377,17 +380,19 @@ def psnr_ssim_mat_3d():
     for idx_filename in range(length):
         hr_filename = hr_list[idx_filename]
         sr_filename = sr_list[idx_filename]
-        if hr_filename != sr_filename or not hr_filename.endswith(supported_formats):
-            """
-            可能存在情况：一对数据错位，后面的所有数据都无法处理
-            """
-            continue
+        # if hr_filename != sr_filename or not hr_filename.endswith(supported_formats):
+        #     """
+        #     可能存在情况：一对数据错位，后面的所有数据都无法处理
+        #     """
+        #     continue
         # 读取文件
         file1 = io.loadmat(os.path.join(hr_dir, hr_filename))
         hr_mat = file1['f1']
         file2 = io.loadmat(os.path.join(sr_dir, sr_filename))
         sr_mat = file2['f1']
         # 计算
+        print(f"hr shape : {hr_mat.shape}")
+        print(f"sr shape : {sr_mat.shape}")
         psnr_temp = peak_signal_noise_ratio(hr_mat, sr_mat, data_range=1.0e3)
         ssim_temp = structural_similarity(hr_mat, sr_mat, data_range=1.0e3, multichannel=True)
         psnr_mean += psnr_temp
@@ -437,16 +442,15 @@ if __name__ == '__main__':
     args.algorithm = 'bicubic'
 
     # png图片
-    datasets = ['Set5', 'Set14']
-    prefix = r'D:\workspace\dataset'
-    suffix_hr = r'HR'
-    suffix_sr = r'SR\X2'
-    for dataset in datasets:
-        args.dataset = dataset
-        args.hr_path = os.path.join(prefix, dataset, suffix_hr)
-        args.sr_path = os.path.join(prefix, dataset, suffix_sr)
-        psnr_ssim_img()
-
+    # datasets = ['Set5', 'Set14', 'Urban100', 'Manga109']
+    # prefix_hr = r'/root/autodl-tmp/dataset'
+    # prefix_sr = r'/root/autodl-tmp/project/HAN_for_3d/experiment/div2k_urban100_bn_latest/results-'
+    # suffix_hr = r'HR'
+    # for dataset in datasets:
+    #     args.dataset = dataset
+    #     args.hr_path = os.path.join(prefix_hr, dataset, suffix_hr)
+    #     args.sr_path = prefix_sr + dataset
+    #     psnr_ssim_img()
 
     # args.dataset = 'Urban100'
     # args.hr_path = r'D:\workspace\dataset\Urban100\HR'
@@ -473,21 +477,43 @@ if __name__ == '__main__':
     #     args.hr_path = h1 + datasets[idx] + h2
     #     args.sr_path = s1 + datasets[idx] + s2
     #     psnr_ssim_dat()
+
+
+    # args.dataset = r'Neg_07_Left_test'
+    # args.hr_path = r'/root/autodl-tmp/dataset/OABreast_2d/Neg_07_Left_test/HR/MergedPhantom.DAT'
+    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/oabreast_new_start_best/results-Neg_07_Left_test/Neg_07_Left_test_x2_SR.DAT'
+    # psnr_ssim_dat()
+
     #
     # # 3d dat
     # args.dataset = 'OABreast_3d'
     # args.data_dir = r"D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D"
     # psnr_ssim_dat_3d()
     #
-    # # mat 2d 输入文件路径
+    # mat 2d 输入文件路径
     # path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_uint'
     # for foldername in os.listdir(path):
     #     args.dataset = 'usct' + '_' + foldername
     #     args.hr_path = os.path.join(path, foldername, 'HR', foldername+'.mat')
     #     args.sr_path = os.path.join(path, foldername, 'SR', 'X2', foldername+'.mat')
     #     psnr_ssim_mat()
+
+    # rm -rf /root/autodl-tmp/project/HAN_for_3d/script/psnr_ssim_logs/*
+    datasets = ['20220511T153240', '20220517T112745', '50525']
+    prefix_sr = r'/root/autodl-tmp/project/HAN_for_3d/experiment/HANx2_usct_2d_bn_other_lr_3'
+    prefix_hr = r'/root/autodl-tmp/dataset/USCT_2d/every_other_points_2d_float'
+    for dataset in datasets:
+        args.dataset = 'usct' + '_' + dataset
+        args.sr_path = os.path.join(prefix_sr, 'results-'+dataset, dataset+'_x2_SR.mat')
+        args.hr_path = os.path.join(prefix_hr, dataset, 'HR', dataset+'.mat')
+        psnr_ssim_mat()
     #
-    # # mat 3d 输入文件夹路径
+    # # mat 3d 输入HR和SR文件夹路径
     # args.dataset = 'usct' + '_' + '3d'
-    # args.data_dir = r"D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_uint"
+    # args.data_dir = r"/root/autodl-tmp/dataset/USCT_3d/every_other_points_2d_float/"
+    # psnr_ssim_mat_3d()
+
+    # args.dataset = 'usct_3d' + '_' + 'test_other'
+    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other/results-USCT_3d_test'
+    # args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/USCT_3d_test/HR'
     # psnr_ssim_mat_3d()
