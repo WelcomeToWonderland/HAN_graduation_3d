@@ -6,5 +6,5 @@ def delete_folder(path):
             filepath = os.path.join(path, filename)
             os.remove(filepath)
         os.rmdir(path)
-    else:
+    elif os.path.isfile(path):
         os.remove(path)

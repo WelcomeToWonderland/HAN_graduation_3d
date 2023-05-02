@@ -76,7 +76,7 @@ python main.py --optimizer ADAMW --weight_decay 1e-5 --bn --lr 5.0e-5 --save HAN
 
 python main.py --bn --lr 5.0e-5 --save usct_3d_bn_lr_5_moredata --resume 0 --epochs 250 --dir_data /workspace/datasets/USCT_3d/bicubic_3d_float_moredata --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
 
-python main.py --bn --lr 1.0e-6 --load usct_to_oabreast_3d_bn_lr_0.1 --resume -1 --epochs 250 --dir_data /workspace/datasets --data_train USCT_3d_to_oabreast_train --data_test USCT_3d_to_oabreast_test --n_GPUs 1 --template HAN --scale 2 --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 4 --n_colors 1
+python main.py --bn --lr 3.0e-5 --load usct_to_oabreast_3d_bn_lr_3 --resume -1 --epochs 250 --dir_data /workspace/datasets --data_train USCT_3d_to_oabreast_train --data_test USCT_3d_to_oabreast_test --n_GPUs 1 --template HAN --scale 2 --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 4 --n_colors 1
 
 
 han 3d 4

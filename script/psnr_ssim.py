@@ -525,8 +525,8 @@ if __name__ == '__main__':
     # args.data_dir = r"/root/autodl-tmp/dataset/USCT_3d/every_other_points_2d_float/"
     # psnr_ssim_mat_3d()
 
-    args.pixel_range = 4
-    args.dataset = 'usct_3d_to_oabreast'
-    args.sr_path = r'/workspace/projects/HAN_3d_53408/experiment/3d_to_oabreast/SR/X2/'
-    args.hr_path = r'/workspace/projects/HAN_3d_53408/experiment/3d_to_oabreast/HR/'
+    args.pixel_range = 1000
+    args.dataset = 'usct_3d_other_random_1'
+    args.sr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_random_1\SR\X2'
+    args.hr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_random_1\HR'
     psnr_ssim_mat_3d()

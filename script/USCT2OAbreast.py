@@ -1,6 +1,6 @@
 from scipy import io
 import argparse
-from script.show_3d import matplot
+from script.show_3d import matplot_2d_imshow
 import os
 import numpy as np
 import time
@@ -48,7 +48,7 @@ def USCT2OAbreast(path_get, path_save, filename):
     basename, _ = os.path.splitext(filename)
     savename = basename + '_before.png'
     if args.plot:
-        matplot(path_get, savename)
+        matplot_2d_imshow(path_get, savename)
     # 数据转化：遍历所有元素
     x, y, z = data.shape
     for ix in range(x):
@@ -70,7 +70,7 @@ def USCT2OAbreast(path_get, path_save, filename):
     # 可视化：处理后
     savename = basename + '_after.png'
     if args.plot:
-        matplot(path_save, savename)
+        matplot_2d_imshow(path_save, savename)
 
 if __name__ == '__main__':
     path_get = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d\HR'
@@ -97,62 +97,62 @@ if __name__ == '__main__':
         [1475.19446776, 1488.59911203, 1502.00375631, 1515.40840059, 2000]
     USCT2OAbreast(path_get, path_save, filename)
 
-    filename = filenames[1]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1479.5033464, 1489.84729074, 1500.19123507, 1510.5351794, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[2]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1446.86278048, 1486.25313586, 1525.64349124, 1565.03384662, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[3]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1431.65332707, 1478.8428911, 1526.03245513, 1573.22201916, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    #
-    filename = filenames[4]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1394.20524367, 1437.98997211, 1481.77470054, 1525.55942898, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[5]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1457.76418075, 1482.98892203, 1508.21366331, 1533.43840458, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[6]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1490.90121454, 1502.85867445, 1514.81613437, 1526.77359428, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    # 20220819T162347 想要剔除
-    # filename = filenames[7]
+    # filename = filenames[1]
     # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-    #     [1495, 1506, 1516, 1531.28691289, 2000]
+    #     [1479.5033464, 1489.84729074, 1500.19123507, 1510.5351794, 2000]
     # USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[8]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1471.19381085, 1481.57181229, 1491.94981374, 1502.32781518, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[9]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1472.65897464, 1485.03657281, 1497.41417097, 1509.79176913, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[10]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1484.04490116, 1502.80908079, 1521.57326042, 1540.33744004, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    filename = filenames[11]
-    args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
-        [1471.82995671, 1488.84920356, 1505.86845041, 1522.88769725, 2000]
-    USCT2OAbreast(path_get, path_save, filename)
-
-    time_end = time.time()
-    print(f"time consuming : {time_end - time_begin}s")
+    #
+    # filename = filenames[2]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1446.86278048, 1486.25313586, 1525.64349124, 1565.03384662, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[3]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1431.65332707, 1478.8428911, 1526.03245513, 1573.22201916, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # #
+    # filename = filenames[4]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1394.20524367, 1437.98997211, 1481.77470054, 1525.55942898, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[5]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1457.76418075, 1482.98892203, 1508.21366331, 1533.43840458, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[6]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1490.90121454, 1502.85867445, 1514.81613437, 1526.77359428, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # # 20220819T162347 想要剔除
+    # # filename = filenames[7]
+    # # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    # #     [1495, 1506, 1516, 1531.28691289, 2000]
+    # # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[8]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1471.19381085, 1481.57181229, 1491.94981374, 1502.32781518, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[9]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1472.65897464, 1485.03657281, 1497.41417097, 1509.79176913, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[10]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1484.04490116, 1502.80908079, 1521.57326042, 1540.33744004, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # filename = filenames[11]
+    # args.fat, args.water, args.fibro_glandular_tissue, args.blood_vessel, args.skin_layer = \
+    #     [1471.82995671, 1488.84920356, 1505.86845041, 1522.88769725, 2000]
+    # USCT2OAbreast(path_get, path_save, filename)
+    #
+    # time_end = time.time()
+    # print(f"time consuming : {time_end - time_begin}s")

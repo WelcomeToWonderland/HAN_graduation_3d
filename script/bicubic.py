@@ -6,6 +6,7 @@ from scipy.ndimage import zoom
 from src.utility import get_3d
 import re
 from scipy import io
+import random
 
 
 # parse args
@@ -21,6 +22,10 @@ parser.add_argument('--sr_img_dir', type=str, default=r'D:\workspace\dataset\OAB
 parser.add_argument('--data_dir', type=str, default=r'',
                     help='总文件夹')
 parser.add_argument('--is_2d', type=bool, default=True,
+                    help='')
+parser.add_argument('--random', type=bool, default=False,
+                    help='')
+parser.add_argument('--value', type=float, default=1,
                     help='')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
@@ -742,25 +747,20 @@ def mat_downsampling_x2_3d_every_other_point():
         # 构建lr容器
         shape = hr_img.shape
         print(f"downsample before : {shape}")
-        # hist, bins = np.histogram(hr_img.flatten(), density=True)
-        # cumhist = np.cumsum(hist)
-        # print(f"hist : {hist}")
-        # print(f"cumhist : {cumhist}")
-        # print(f"bins : {bins}")
         lr_img_2x = np.zeros((shape[0] // 2, shape[1] // 2, shape[2]//2))
         # downsampling
         for ih in range(0, shape[0], 2):
             for iw in range(0, shape[1], 2):
                 for idepth in range(0, shape[2], 2):
                     lr_img_2x[ih//2, iw//2, idepth//2] = hr_img[ih, iw, idepth]
-        # for idx in range(shape[2]):
-        #     lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+                    if args.random and random.random() < 0.5:
+                        if random.random() < 0.5:
+                            lr_img_2x[ih // 2, iw // 2, idepth // 2] += random.random() * args.value
+                        else:
+                            lr_img_2x[ih // 2, iw // 2, idepth // 2] -= random.random() * args.value
+
+
         print(f"downsample after : {lr_img_2x.shape}")
-        # hist, bins = np.histogram(lr_img_2x.flatten(), density=True)
-        # cumhist = np.cumsum(hist)
-        # print(f"hist : {hist}")
-        # print(f"cumhist : {cumhist}")
-        # print(f"bins : {bins}")
         """
         经过cv2.resize处理，dtype为浮点数
         """
@@ -799,7 +799,7 @@ def bi_mat_to_oabreast_downsampling_x2_3d():
         3 : 双三次插值
         """
         lr_img = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
-        lr_img =quantize(lr_img, 4)
+        lr_img =quantize(lr_img, 1000)
         # after shape
         print(lr_img.shape)
         # 保存
@@ -829,7 +829,7 @@ def bi_mat_to_oabreast_upsampling_x2_3d():
         print(lr_img.shape)
         # upsample
         sr_img = zoom(lr_img, (2, 2, 2), order=3)
-        sr_img = quantize(sr_img, 4)
+        sr_img = quantize(sr_img, 1000)
         # after shape
         print(sr_img.shape)
         # save
@@ -890,8 +890,12 @@ if __name__ == '__main__':
 
     # usct to oabreast 3d
     # 提供文件夹路径
-    args.data_dir = r'/workspace/projects/HAN_3d_53408/experiment/3d_to_oabreast'
-    bi_mat_to_oabreast_downsampling_x2_3d()
+
+    args.random = True
+    args.value = 1
+    args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_random_1'
+    # bi_mat_to_oabreast_downsampling_x2_3d()
+    mat_downsampling_x2_3d_every_other_point()
     bi_mat_to_oabreast_upsampling_x2_3d()
 
 

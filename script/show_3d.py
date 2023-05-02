@@ -71,36 +71,134 @@ def matplot_2d_imshow(path, savefolder, savename):
         file = io.loadmat(path)
         data = file['f1']
     elif path.endswith('.DAT'):
-        filename = os.path.basename(path)
-        basename, _ = os.path.splitext(filename)
+        basename, _ = os.path.splitext(savename)
         x, y, z = get_3d(basename)
-        data = np.fromfile(path)
+        data = np.fromfile(path, dtype=np.uint8)
         data = data.reshape(x, y, z)
-
+    # 建立输出保存文件夹
+    save_dir = os.path.join('../script_results', savefolder)
+    os.makedirs(save_dir, exist_ok=True)
     # 绘制平面图像
-    os.makedirs(os.path.join('../script_results', savefolder), exist_ok=True)
     shape = data.shape
     for pos in range(3):
         if pos == 0:
-            temp = data[shape[0]//2]
+            for idx in range(3):
+                if idx == 0:
+                    temp = data[shape[0] // 4]
+                elif idx == 1:
+                    temp = data[shape[0] // 2]
+                elif idx == 2:
+                    temp = data[shape[0] // 4 * 3]
+                plt.imshow(temp)
+                plt.colorbar()
+                basename, ext = os.path.splitext(savename)
+                temp_savename = basename + f'_{pos}_{idx}' + ext
+                path_save = os.path.join(save_dir, temp_savename)
+                print(f"matplot path_save : {path_save}")
+                plt.savefig(path_save, dpi=600)
+                plt.close()
         elif pos == 1:
-            temp = data[:, shape[1]//2]
+            for idx in range(3):
+                if idx == 0:
+                    temp = data[:, shape[1] // 4]
+                elif idx == 1:
+                    temp = data[:, shape[1] // 2]
+                elif idx == 2:
+                    temp = data[:, shape[1] // 4 * 3]
+                plt.imshow(temp)
+                plt.colorbar()
+                basename, ext = os.path.splitext(savename)
+                temp_savename = basename + f'_{pos}_{idx}' + ext
+                path_save = os.path.join(save_dir, temp_savename)
+                print(f"matplot path_save : {path_save}")
+                plt.savefig(path_save, dpi=600)
+                plt.close()
         elif pos == 2:
-            temp = data[..., shape[2]//2]
-        plt.imshow(temp)
-        plt.colorbar()
-        # plt.show()
-        basename, ext = os.path.splitext(savename)
-        temp_savename = basename + f'_{pos}' + ext
-        path_save = os.path.join('.', savefolder, temp_savename)
-        print(f"matplot path_save : {path_save}")
-        plt.savefig(path_save, dpi=600)
-        plt.close()
+            for idx in range(3):
+                if idx == 0:
+                    temp = data[..., shape[2]//4]
+                elif idx == 1:
+                    temp = data[..., shape[2]//2]
+                elif idx == 2:
+                    temp = data[..., shape[2]//4*3]
+                plt.imshow(temp)
+                plt.colorbar()
+                basename, ext = os.path.splitext(savename)
+                temp_savename = basename + f'_{pos}_{idx}' + ext
+                path_save = os.path.join(save_dir, temp_savename)
+                print(f"matplot path_save : {path_save}")
+                plt.savefig(path_save, dpi=600)
+                plt.close()
+
 
 
 
 
 if __name__ == '__main__':
+
+    filenames = ['20220511T153240.mat', '20220517T112745.mat',
+                 '50525.mat']
+
+    # 初始换：删除之前文件夹
+    savefolder = 'USCT_2d_SR_bn_lr_7'
+    delete_folder(os.path.join('..', 'script_results', savefolder))
+
+    for filename in filenames:
+        path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_float'
+        path = os.path.join(path_original, filename)
+        basename, _ = os.path.splitext(filename)
+        savename = basename + '.png'
+        matplot_2d_imshow(path, savefolder, savename)
+
+
+
+    # # reset
+    # savefolder = 'USCT_2d_HR_20220511T153240'
+    # delete_folder(os.path.join('..', 'script_results', savefolder))
+    # # 拼接文件path
+    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_float\20220511T153240\HR'
+    # filename = '20220511T153240.mat'
+    # path = os.path.join(path_original, filename)
+    # # 构建图片名
+    # # basename, _ = os.path.splitext(filename)
+    # # savename = basename + '.png'
+    # savename = '20220511T153240' + '.png'
+    # # 调用函数
+    # matplot_2d_imshow(path, savefolder, savename)
+
+
+    # filenames = ['20220510T153337.mat', '20220511T153240.mat', '20220517T112745.mat',
+    #              '20220525T153940.mat', '20220526T181025.mat', '20220608T172601.mat',
+    #              '20220809T140229.mat', '20220819T162347.mat', '20221114T153716.mat',
+    #              '20221116T164200.mat',
+    #              '50525.mat', '52748.mat']
+    #
+    # idx = 1
+    #
+    # # 初始换：删除之前文件夹
+    # savefolder = 'USCT_2d_inshow_translation'
+    # delete_folder(os.path.join('..', 'script_results', savefolder))
+    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d\HR'
+    # filename = filenames[idx]
+    # path = os.path.join(path_original, filename)
+    # basename, _ = os.path.splitext(filename)
+    # savename = basename + '.png'
+    # matplot_2d_imshow(path, savefolder, savename)
+    #
+    #
+    # savefolder = 'USCT_2d_inshow_translation_to_oabreast'
+    # delete_folder(os.path.join('..', 'script_results', savefolder))
+    # path_processed = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d_to_oabreast\HR'
+    # filename = filenames[idx]
+    # path = os.path.join(path_processed, filename)
+    # basename, _ = os.path.splitext(filename)
+    # savename = basename + '.png'
+    # matplot_2d_imshow(path, savefolder, savename)
+
+
+
+
+
     # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d\HR'
     # for filename in os.listdir(path_original):
     #     path = os.path.join(path_original, filename)
@@ -108,11 +206,11 @@ if __name__ == '__main__':
     #     savename = basename + '.png'
     #     savefolder = 'USCT_2d_inshow_translation'
     #     matplot_2d_imshow(path, savefolder, savename)
-
-    path_processed = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d_to_oabreast\HR'
-    for filename in os.listdir(path_processed):
-        path = os.path.join(path_processed, filename)
-        basename, _ = os.path.splitext(filename)
-        savename = basename + '.png'
-        savefolder = 'USCT_2d_inshow_translation_to_oabreast'
-        matplot_2d_imshow(path, savefolder, savename)
+    #
+    # path_processed = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d_to_oabreast\HR'
+    # for filename in os.listdir(path_processed):
+    #     path = os.path.join(path_processed, filename)
+    #     basename, _ = os.path.splitext(filename)
+    #     savename = basename + '.png'
+    #     savefolder = 'USCT_2d_inshow_translation_to_oabreast'
+    #     matplot_2d_imshow(path, savefolder, savename)
