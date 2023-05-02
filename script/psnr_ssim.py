@@ -33,7 +33,7 @@ def psnr_ssim_img():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{args.algorithm}_{dataset}_{now}")
+    log_dir = os.path.join('../script_results', '../script_results/psnr_ssim_logs', f"{args.algorithm}_{dataset}_{now}")
     print(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
     # log
@@ -110,7 +110,7 @@ def psnr_ssim_dat():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{dataset}_{now}")
     print(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
     # log
@@ -190,7 +190,7 @@ def psnr_ssim_dat_3d():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # tb
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{dataset}_{now}")
     print(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
     # log
@@ -274,7 +274,7 @@ def psnr_ssim_mat():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # make dirs
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{dataset}_{now}")
+    log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{dataset}_{now}")
     os.makedirs(log_dir, exist_ok=True)
     print(log_dir)
     # tb
@@ -354,7 +354,7 @@ def psnr_ssim_mat_3d():
     dataset = args.dataset
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # make dirs
-    log_dir = os.path.join('.', 'psnr_ssim_logs', f"{args.algorithm}_{dataset}_{now}")
+    log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{args.algorithm}_{dataset}_{now}")
     os.makedirs(log_dir, exist_ok=True)
     print(log_dir)
     # tb
