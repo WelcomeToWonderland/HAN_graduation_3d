@@ -26,6 +26,8 @@ parser.add_argument('--dataset', type=str, default=r'',
                     help='')
 parser.add_argument('--algorithm', type=str, default=r'',
                     help='')
+parser.add_argument('--pixel_range', type=int, default=255,
+                    help='')
 args = parser.parse_args()
 
 def psnr_ssim_img():
@@ -393,8 +395,8 @@ def psnr_ssim_mat_3d():
         # 计算
         print(f"hr shape : {hr_mat.shape}")
         print(f"sr shape : {sr_mat.shape}")
-        psnr_temp = peak_signal_noise_ratio(hr_mat, sr_mat, data_range=1.0e3)
-        ssim_temp = structural_similarity(hr_mat, sr_mat, data_range=1.0e3, multichannel=True)
+        psnr_temp = peak_signal_noise_ratio(hr_mat, sr_mat, data_range=args.pixel_range)
+        ssim_temp = structural_similarity(hr_mat, sr_mat, data_range=args.pixel_range, multichannel=True)
         psnr_mean += psnr_temp
         ssim_mean += ssim_temp
         psnr.append(psnr_temp)
@@ -489,11 +491,10 @@ if __name__ == '__main__':
     #     args.sr_path = s1 + datasets[idx] + s2
     #     psnr_ssim_dat()
 
-
-    args.dataset = r'Neg_07_Left_test'
-    args.hr_path = r'/root/autodl-tmp/dataset/OABreast_2d/Neg_07_Left_test/HR/MergedPhantom.DAT'
-    args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/oabreast_2d_transfer_learning/results-Neg_07_Left_test/Neg_07_Left_test_x2_SR.DAT'
-    psnr_ssim_dat()
+    # args.dataset = r'Neg_07_Left_test'
+    # args.hr_path = r'/root/autodl-tmp/dataset/OABreast_2d/Neg_07_Left_test/HR/MergedPhantom.DAT'
+    # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/oabreast_2d_transfer_learning/results-Neg_07_Left_test/Neg_07_Left_test_x2_SR.DAT'
+    # psnr_ssim_dat()
 
     #
     # # 3d dat
@@ -524,9 +525,8 @@ if __name__ == '__main__':
     # args.data_dir = r"/root/autodl-tmp/dataset/USCT_3d/every_other_points_2d_float/"
     # psnr_ssim_mat_3d()
 
-    # args.dataset = 'usct_3d' + '_' + 'test_other'
-    # # args.sr_path = r'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other/results-USCT_3d_test'
-    # # args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/USCT_3d_test/HR'
-    # args.sr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/50525/SR/X2'
-    # args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d/50525/HR'
-    # psnr_ssim_mat_3d()
+    args.pixel_range = 4
+    args.dataset = 'usct_3d_to_oabreast'
+    args.sr_path = r'/workspace/projects/HAN_3d_53408/experiment/3d_to_oabreast/SR/X2/'
+    args.hr_path = r'/workspace/projects/HAN_3d_53408/experiment/3d_to_oabreast/HR/'
+    psnr_ssim_mat_3d()

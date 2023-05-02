@@ -52,7 +52,7 @@ class Data:
                                      '50525','52748']:
                     m = import_module('data.usct')
                     datasets.append(getattr(m, 'USCT')(args, name=d))
-                elif module_name in ['USCT_3d_train', 'USCT_3d_test']:
+                elif module_name in ['USCT_3d_train', 'USCT_3d_test', 'USCT_3d_to_oabreast_train', 'USCT_3d_to_oabreast_test']:
                     m = import_module('data.usct_3d')
                     datasets.append(getattr(m, 'USCT')(args, name=d))
                 # 其他数据集
@@ -94,7 +94,7 @@ class Data:
                                  '50525', '52748']:
                 m = import_module('data.usct')
                 testset = getattr(m, 'USCT')(args, train=False, name=d)
-            elif d in ['USCT_3d_train', 'USCT_3d_test']:
+            elif d in ['USCT_3d_train', 'USCT_3d_test', 'USCT_3d_to_oabreast_train', 'USCT_3d_to_oabreast_test']:
                 m = import_module('data.usct_3d')
                 testset = getattr(m, 'USCT')(args, train=False, name=d)
             else:

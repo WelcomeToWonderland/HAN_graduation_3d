@@ -771,6 +771,71 @@ def mat_downsampling_x2_3d_every_other_point():
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout': lr_img_2x})
 
+def bi_mat_to_oabreast_downsampling_x2_3d():
+    print("\nbi_mat_to_oabreast_downsampling_x2_3d")
+    hr_image_dir = os.path.join(args.data_dir, 'HR')
+    lr_image_dir = os.path.join(args.data_dir, 'LR', "X2")
+    print(f"sr_image_dir : {hr_image_dir}")
+    print(f"lr_image_dir : {lr_image_dir}")
+    # create LR image dirs
+    os.makedirs(lr_image_dir, exist_ok=True)
+    # supported_img_formats = (".DAT")
+    supported_img_formats = (".mat")
+    # 遍历HR文件夹下的文件
+    for filename in os.listdir(hr_image_dir):
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取图片
+        # file = np.fromfile(os.path.join(hr_image_dir, filename), dtype=np.uint8)
+        file = io.loadmat(os.path.join(hr_image_dir, filename))
+        hr_img = file['f1']
+        # before shape
+        print(hr_img.shape)
+        # downsample
+        """
+        order
+        0 : 最邻近插值
+        1 : 双线性插值
+        3 : 双三次插值
+        """
+        lr_img = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
+        lr_img =quantize(lr_img, 4)
+        # after shape
+        print(lr_img.shape)
+        # 保存
+        # lr_img.tofile(os.path.join(lr_image_dir, filename))
+        io.savemat(os.path.join(lr_image_dir, filename), {'imgout': lr_img})
+
+def bi_mat_to_oabreast_upsampling_x2_3d():
+    print("\nbi_dat_upsampling_x2_3d")
+    sr_image_dir = os.path.join(args.data_dir, 'SR', 'X2')
+    lr_image_dir = os.path.join(args.data_dir, 'LR', 'X2')
+    # print(f"data_dir : {args.data_dir}")
+    print(f"sr_image_dir : {sr_image_dir}")
+    print(f"lr_image_dir : {lr_image_dir}")
+    # create SR image dirs
+    os.makedirs(sr_image_dir, exist_ok=True)
+    # supported_img_formats = (".DAT")
+    supported_img_formats = (".mat")
+    # 遍历HR文件夹下的文件
+    for filename in os.listdir(lr_image_dir):
+        if not filename.endswith(supported_img_formats):
+            continue
+        # 获取图片
+        # file = np.fromfile(os.path.join(lr_image_dir, filename), dtype=np.uint8)
+        file = io.loadmat(os.path.join(lr_image_dir, filename))
+        lr_img = file['imgout']
+        # before shape
+        print(lr_img.shape)
+        # upsample
+        sr_img = zoom(lr_img, (2, 2, 2), order=3)
+        sr_img = quantize(sr_img, 4)
+        # after shape
+        print(sr_img.shape)
+        # save
+        # sr_img.tofile(os.path.join(sr_image_dir, filename))
+        io.savemat(os.path.join(sr_image_dir, filename), {'f1': sr_img})
+
 if __name__ == '__main__':
     # png图片
     # args.hr_img_dir = 'D:\workspace\dataset\Manga109\clipping\HR'
@@ -816,12 +881,18 @@ if __name__ == '__main__':
     #         mat_downsampling_x2_every_other_point()
     #         bi_mat_upsampling_x2()
     #
-    # usct 3d
+    # # usct 3d
+    # # 提供文件夹路径
+    # args.data_dir = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d_float_test/'
+    # # bi_mat_downsampling_x2_3d()
+    # mat_downsampling_x2_3d_every_other_point()
+    # bi_mat_upsampling_x2_3d()
+
+    # usct to oabreast 3d
     # 提供文件夹路径
-    args.data_dir = r'/root/autodl-tmp/dataset/USCT_3d/every_other_points_3d_float_test/'
-    # bi_mat_downsampling_x2_3d()
-    mat_downsampling_x2_3d_every_other_point()
-    bi_mat_upsampling_x2_3d()
+    args.data_dir = r'/workspace/projects/HAN_3d_53408/experiment/3d_to_oabreast'
+    bi_mat_to_oabreast_downsampling_x2_3d()
+    bi_mat_to_oabreast_upsampling_x2_3d()
 
 
 
