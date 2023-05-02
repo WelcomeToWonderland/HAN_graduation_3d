@@ -1,5 +1,5 @@
-./experiment/*
-./script_results/*
+/experiment/*
+/script_results/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
