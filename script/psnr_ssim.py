@@ -13,6 +13,7 @@ import argparse
 import torch.nn as nn
 from src.utility import get_3d
 from scipy import io
+from script.common import delete_folder
 
 # parse args
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
@@ -441,6 +442,7 @@ def psnr_ssim_mat_3d():
 
 
 if __name__ == '__main__':
+    # 上采样算法
     args.algorithm = 'bicubic'
 
     # png图片
@@ -525,8 +527,9 @@ if __name__ == '__main__':
     # args.data_dir = r"/root/autodl-tmp/dataset/USCT_3d/every_other_points_2d_float/"
     # psnr_ssim_mat_3d()
 
+    # delete_folder(r'D:\workspace\HAN_for_3d\script_results\psnr_ssim_logs')
     args.pixel_range = 1000
-    args.dataset = 'usct_3d_other_random_1'
-    args.sr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_random_1\SR\X2'
-    args.hr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_random_1\HR'
+    args.dataset = 'usct_3d_float_other_noise_4'
+    args.sr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_4\SRSR'
+    args.hr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_4\HRHR'
     psnr_ssim_mat_3d()

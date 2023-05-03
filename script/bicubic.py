@@ -23,14 +23,21 @@ parser.add_argument('--data_dir', type=str, default=r'',
                     help='总文件夹')
 parser.add_argument('--is_2d', type=bool, default=True,
                     help='')
-parser.add_argument('--random', type=bool, default=False,
+parser.add_argument('--noise', type=bool, default=False,
                     help='')
-parser.add_argument('--value', type=float, default=1,
+parser.add_argument('--noise_level', type=float, default=0.1,
                     help='')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
 parser.add_argument('--nz', type=int)
 args = parser.parse_args()
+
+def add_noise(data):
+    noise_level = args.noise_level
+    noise = np.random.randn(*data.shape) * noise_level
+    noisy_img = data + noise
+    return noisy_img
+
 
 def bd_img():
     hr_image_dir = args.hr_img_dir
@@ -753,12 +760,15 @@ def mat_downsampling_x2_3d_every_other_point():
             for iw in range(0, shape[1], 2):
                 for idepth in range(0, shape[2], 2):
                     lr_img_2x[ih//2, iw//2, idepth//2] = hr_img[ih, iw, idepth]
-                    if args.random and random.random() < 0.5:
-                        if random.random() < 0.5:
-                            lr_img_2x[ih // 2, iw // 2, idepth // 2] += random.random() * args.value
-                        else:
-                            lr_img_2x[ih // 2, iw // 2, idepth // 2] -= random.random() * args.value
+                    # if args.random and random.random() < 0.5:
+                    #     if random.random() < 0.5:
+                    #         lr_img_2x[ih // 2, iw // 2, idepth // 2] += random.random() * args.value
+                    #     else:
+                    #         lr_img_2x[ih // 2, iw // 2, idepth // 2] -= random.random() * args.value
 
+        # 添加噪声
+        if args.noise:
+            lr_img_2x = add_noise(lr_img_2x)
 
         print(f"downsample after : {lr_img_2x.shape}")
         """
@@ -891,12 +901,12 @@ if __name__ == '__main__':
     # usct to oabreast 3d
     # 提供文件夹路径
 
-    args.random = True
-    args.value = 1
-    args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_random_1'
+    args.noise = True
+    args.noise_level = 4
+    args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_4'
     # bi_mat_to_oabreast_downsampling_x2_3d()
     mat_downsampling_x2_3d_every_other_point()
-    bi_mat_to_oabreast_upsampling_x2_3d()
+    bi_mat_upsampling_x2_3d()
 
 
 
