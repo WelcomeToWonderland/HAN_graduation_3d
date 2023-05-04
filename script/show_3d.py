@@ -70,9 +70,11 @@ def matplot_2d_imshow(path, savefolder, savename):
     if path.endswith('.mat'):
         file = io.loadmat(path)
         data = file['f1']
+        # data = file['imgout']
     elif path.endswith('.DAT'):
         basename, _ = os.path.splitext(savename)
         x, y, z = get_3d(basename)
+        # x, y, z = x//2, y//2, z
         data = np.fromfile(path, dtype=np.uint8)
         data = data.reshape(x, y, z)
     # 建立输出保存文件夹
@@ -140,15 +142,30 @@ if __name__ == '__main__':
                  '50525.mat']
 
     # 初始换：删除之前文件夹
-    savefolder = 'USCT_2d_SR_bn_lr_7'
+    savefolder = f'USCT_3d_SR_HAN_other_noise_3_true'
     delete_folder(os.path.join('..', 'script_results', savefolder))
 
-    for filename in filenames:
-        path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_float'
-        path = os.path.join(path_original, filename)
-        basename, _ = os.path.splitext(filename)
-        savename = basename + '.png'
-        matplot_2d_imshow(path, savefolder, savename)
+    path_original = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other_noise_3_true/results-USCT_3d_test'
+    filename = '20220517T112745_x2_SR.mat'
+    path = os.path.join(path_original, filename)
+    basename, _ = os.path.splitext(filename)
+    # savename = basename + '.png'
+    savename = '20220517T112745' + '.png'
+    matplot_2d_imshow(path, savefolder, savename)
+
+
+    # levels = [0.1, 2, 3, 4, 5]
+    # for level in levels:
+    #     # 初始换：删除之前文件夹
+    #     savefolder = f'USCT_3d_SR_bicubic_other_noise_{level}'
+    #     delete_folder(os.path.join('..', 'script_results', savefolder))
+    #
+    #     for filename in filenames:
+    #         path_original = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_{level}\SRSR'
+    #         path = os.path.join(path_original, filename)
+    #         basename, _ = os.path.splitext(filename)
+    #         savename = basename + '.png'
+    #         matplot_2d_imshow(path, savefolder, savename)
 
 
 

@@ -443,7 +443,7 @@ def psnr_ssim_mat_3d():
 
 if __name__ == '__main__':
     # 上采样算法
-    args.algorithm = 'bicubic'
+    args.algorithm = 'HAN'
 
     # png图片
     # datasets = ['Set5', 'Set14', 'Urban100', 'Manga109']
@@ -529,7 +529,9 @@ if __name__ == '__main__':
 
     # delete_folder(r'D:\workspace\HAN_for_3d\script_results\psnr_ssim_logs')
     args.pixel_range = 1000
-    args.dataset = 'usct_3d_float_other_noise_4'
-    args.sr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_4\SRSR'
-    args.hr_path = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_4\HRHR'
-    psnr_ssim_mat_3d()
+    levels = [3, 4, 5]
+    for level in levels:
+        args.dataset = f'usct_3d_bn_lr_5_other_noise_{level}'
+        args.sr_path = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other_noise_{level}/results-USCT_3d_test'
+        args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_noise_3/USCT_3d_test/HR'
+        psnr_ssim_mat_3d()
