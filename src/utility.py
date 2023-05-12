@@ -301,7 +301,10 @@ class checkpoint():
                     'results-{}'.format(dataset.dataset.name),
                     '{}_x{}_SR.mat'.format(dataset.dataset.name, scale)
                 )
-                io.savemat(filename, {'f1' : sr_dat})
+                if self.args.rgb_range == 4:
+                    io.savemat(filename, {'img' : sr_dat})
+                else:
+                    io.savemat(filename, {'f1' : sr_dat})
 
 def quantize(img, rgb_range):
     """
@@ -502,5 +505,22 @@ def get_3d(filename):
     #             '20221114T153716' : (196, 196, 110), '20221116T164200' : (196, 196, 110),
     #             '50525' : (196, 196, 114), '52748' : (256, 256, 146)}
     #     nx, ny, nz = dict[filename]
+
+    return nx, ny, nz
+
+def get_3d_unmodified(filename):
+    nxs = [616, 284, 495]
+    nys = [485, 411, 615]
+    nzs = [719, 722, 752]
+    idx = None
+    if filename.split('_')[1] == '07':
+        idx = 0
+    elif filename.split('_')[1] == '35':
+        idx = 1
+    elif filename.split('_')[1] == '47':
+        idx = 2
+    nx = nxs[idx]
+    ny = nys[idx]
+    nz = nzs[idx]
 
     return nx, ny, nz

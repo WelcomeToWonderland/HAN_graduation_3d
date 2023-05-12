@@ -3,6 +3,7 @@ import argparse
 import cv2
 import numpy as np
 from src.utility import get_3d
+from scipy import io
 
 # parse args
 parser = argparse.ArgumentParser(description='extract testset from dataset form 300 ~ 499')
@@ -52,6 +53,49 @@ def extract_dataset():
             trainset.tofile(os.path.join(path_train, filename))
             testset.tofile(os.path.join(path_test, filename))
 
+def extract_dataset_mat():
+    """
+    将path所指文件划分为训练集和测试集
+    :param path:
+    :return:
+    """
+    path = args.path
+    print(args.path)
+
+    # 将一个dataset下所有文件
+    folder_suffix = ['HR', 'LR\X2']
+    supported_img_formats = (".mat")
+
+    for idx_suffix in range(2):
+        path_orginal = os.path.join(path, folder_suffix[idx_suffix])
+        if not os.path.isdir(path_orginal):
+            continue
+        path_train = os.path.join(path+'_train', folder_suffix[idx_suffix])
+        path_test = os.path.join(path+'_test', folder_suffix[idx_suffix])
+        os.makedirs(path_train, exist_ok=True)
+        os.makedirs(path_test, exist_ok=True)
+        print(path_orginal)
+        print(path_train)
+        print(path_test)
+
+        for filename in os.listdir(path_orginal):
+            print(filename)
+            if not filename.endswith(supported_img_formats):
+                continue
+
+            file = io.loadmat(os.path.join(path_orginal, filename))
+            dataset = file['img']
+            trainset = dataset[:, :, 400:]
+            testset = dataset[:, :, 0:400]
+            print(f"dataset shape : {np.shape(dataset)}")
+            print(f"trainset shape : {np.shape(trainset)}")
+            print(f"testset shape : {np.shape(testset)}")
+            basename = os.path.basename(filename)
+            filename_train = basename + '_tarin' + supported_img_formats
+            filename_test = basename + 'test' + supported_img_formats
+            io.savemat(os.path.join(path_train, filename_train), {'img': trainset})
+            io.savemat(os.path.join(path_test, filename_test), {'img': testset})
+
 def extract_file():
     path = args.path
     filename = os.path.splitext(os.path.basename(path))[0]
@@ -73,5 +117,5 @@ def extract_file():
 
 
 if __name__ == '__main__':
-    args.path = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\3D\HR\Neg_07_Left.DAT'
-    extract_file()
+    args.path = r'D:\workspace\dataset\OABreast\dat2mat\clipping\Neg_07_Left'
+    extract_dataset_mat()

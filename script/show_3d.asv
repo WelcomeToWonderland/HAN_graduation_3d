@@ -40,7 +40,7 @@ elseif strcmp(ext, 'mat')
     elseif strcmp(mat_field, 'img')
         data = file.img;
     end
-    disp(class(data));
+    disp(class(
     % mat数据还原，加1000
     if ~is_untranslated
         if strcmp(mat_field, 'img')

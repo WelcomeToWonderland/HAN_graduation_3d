@@ -16,5 +16,18 @@ import matplotlib.pyplot as plt
 import random
 from scipy.ndimage import rotate
 
-for item in range(10):
-    print(item)
+# 创建一个100x100x3的随机数组
+x = np.random.rand(100, 100, 3)
+print(x.shape)
+
+
+temp = x[1:]
+print(temp.shape)
+
+
+temp = x[:, 1:]
+print(temp.shape)
+
+
+temp = x[:, :, 1:]
+print(temp.shape)

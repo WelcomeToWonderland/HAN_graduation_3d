@@ -23,22 +23,44 @@ parser.add_argument('--data_dir', type=str, default=r'',
                     help='总文件夹')
 parser.add_argument('--is_2d', type=bool, default=True,
                     help='')
+parser.add_argument('--is_OA-breast', type=bool, default=False,
+                    help='')
 parser.add_argument('--noise', type=bool, default=False,
                     help='')
 parser.add_argument('--noise_level', type=float, default=0.1,
+                    help='')
+parser.add_argument('--num_of_DS', type=int, default=0,
+                    help='多次bicubic上下采样')
+parser.add_argument('--dist_of_DS', type=int, default=0,
+                    help='没有使用')
+parser.add_argument('--num_of_other', type=int, default=0,
+                    help='多次隔点下取样，和bicubic上采样')
+parser.add_argument('--mat_field', type=str, default=r'',
+                    help='')
+parser.add_argument('--data_range', type=int, default=0,
                     help='')
 parser.add_argument('--nx', type=int)
 parser.add_argument('--ny', type=int)
 parser.add_argument('--nz', type=int)
 args = parser.parse_args()
 
+# 添加噪声
 def add_noise(data):
     noise_level = args.noise_level
     noise = np.random.randn(*data.shape) * noise_level
     noisy_img = data + noise
     return noisy_img
 
+# 规格化：收束像素范围
+def quantize(img, data_range):
+    img = img.astype(np.float64)
+    img = img * 255 / data_range
+    img = np.clip(img, 0, 255)
+    img = img / 255 * data_range
+    img = np.round(img).astype(np.uint8)
+    return img
 
+# bd下采样
 def bd_img():
     hr_image_dir = args.hr_img_dir
     lr_image_dir = args.lr_img_dir
@@ -156,14 +178,7 @@ def bd_dat():
         print(f"after resize shape:{np.shape(lr_image_2x)}")
         lr_image_2x.tofile(os.path.join(lr_image_dir + "/X2", filename.split('.')[0] + 'x2' + ext))
 
-def quantize(img, data_range):
-    img = img.astype(np.float64)
-    img = img * 255 / data_range
-    img = np.clip(img, 0, 255)
-    img = img / 255 * data_range
-    img = np.round(img).astype(np.uint8)
-    return img
-
+# png图像上下采样
 def bi_img_downsampling_x2():
     print("\nbi_img_downsampling_x2")
     hr_image_dir = args.hr_img_dir
@@ -221,7 +236,7 @@ def bi_img_upsampling_x2():
         sr_image_2x = cv2.resize(lr_img, (0, 0), fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(os.path.join(sr_image_dir + "/X2", filename.split('.')[0] + ext), sr_image_2x)
 
-
+# dat文件上下采样
 def bi_dat_downsampling_x2():
     """
     BI : 仅bicubic
@@ -386,7 +401,7 @@ def bi_dat_upsampling_x2_3d():
         # save
         sr_img.tofile(os.path.join(sr_image_dir, filename))
 
-
+# mat文件上下采样
 def bi_mat_downsampling_x2():
     """
     BI : 仅bicubic
@@ -417,11 +432,12 @@ def bi_mat_downsampling_x2():
             continue
         # 获取hr
         file = io.loadmat(os.path.join(hr_dir, filename))
-        hr_img = file['f1']
+        hr_img = file[args.mat_field]
         # 转换数据类型
         flag = (hr_img.dtype == np.uint16)
-        if flag:
-            hr_img.astype(np.float64)
+        flag1 = (hr_img.dtype == np.uint8)
+        if flag or flag1:
+            hr_img = hr_img.astype(np.float64)
         # 进行下采样
         shape = hr_img.shape
         print(f"downsample before : {shape}")
@@ -442,12 +458,17 @@ def bi_mat_downsampling_x2():
         """
         经过cv2.resize处理，dtype为浮点数
         """
-        lr_img_2x = np.clip(0.0, 1.0e3, lr_img_2x)
+        lr_img_2x = np.clip(0.0, args.data_range, lr_img_2x)
         # 转换数据类型
         if flag:
-            lr_img_2x.astype(np.uint16)
+            lr_img_2x = lr_img_2x.astype(np.uint16)
+        if flag1:
+            lr_img_2x = lr_img_2x.astype(np.uint8)
         # 保存lr文件
-        io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
+        if args.mat_field == 'f1':
+            io.savemat(os.path.join(lr_dir, filename), {'imgout' : lr_img_2x})
+        elif args.mat_field == 'img':
+            io.savemat(os.path.join(lr_dir, filename), {'img' : lr_img_2x})
 
 def bi_mat_upsampling_x2():
     """
@@ -479,11 +500,12 @@ def bi_mat_upsampling_x2():
             continue
         # 获取lr
         file = io.loadmat(os.path.join(lr_dir, filename))
-        lr_img = file['imgout']
+        lr_img = file[args.mat_field]
         # 转换数据类型
         flag = (lr_img.dtype == np.uint16)
-        if flag:
-            lr_img.astype(np.float64)
+        flag1 = (lr_img.dtype == np.uint8)
+        if flag or flag1:
+            lr_img = lr_img.astype(np.float64)
         # 进行下采样
         shape = lr_img.shape
         print(f"downsample before : {shape}")
@@ -508,13 +530,19 @@ def bi_mat_upsampling_x2():
         """
         经过cv2.resize处理，dtype为浮点数
         """
-        sr_img_2x = np.clip(0.0, 1.0e+3, sr_img_2x)
+        sr_img_2x = np.clip(0.0, args.data_range, sr_img_2x)
         # 转换数据类型
         if flag:
-            sr_img_2x.astype(np.uint16)
+            sr_img_2x = sr_img_2x.astype(np.uint16)
+        if flag1:
+            sr_img_2x = sr_img_2x.astype(np.uint8)
         # 保存sr文件
-        io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
+        if args.mat_field == 'imgout':
+            io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
+        elif args.mat_field == 'img':
+            io.savemat(os.path.join(sr_dir, filename), {'img' : sr_img_2x})
 
+# 设置多次下采样，和每次下采样距离，达到控制psnr的效果
 def bi_mat_downsampling_x2_3d():
     """
     BI : 仅bicubic
@@ -554,23 +582,32 @@ def bi_mat_downsampling_x2_3d():
         shape = hr_img.shape
         print(f"downsample before : {shape}")
 
-        hist, bins = np.histogram(hr_img.flatten(),density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(hr_img.flatten(),density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         # lr_img_2x = np.zeros((shape[0]//2, shape[1]//2, shape[2]))
         # for idx in range(shape[2]):
         #     lr_img_2x[:, :, idx] = cv2.resize(hr_img[:, :, idx], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-        lr_img_2x = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
+        if args.num_of_DS == 0:
+            lr_img_2x = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
+        else:
+            temp = hr_img
+            for idx in range(args.num_of_DS-1):
+                print(f'repeat down and up sampling: {idx}')
+                temp = zoom(temp, (0.5, 0.5, 0.5), order=3)
+                temp = zoom(temp, (2, 2, 2), order=3)
+            lr_img_2x = zoom(temp, (0.5, 0.5, 0.5), order=3)
+
         print(f"downsample after : {lr_img_2x.shape}")
 
-        hist, bins = np.histogram(lr_img_2x.flatten(),density=True)
-        cumhist = np.cumsum(hist)
-        print(f"hist : {hist}")
-        print(f"cumhist : {cumhist}")
-        print(f"bins : {bins}")
+        # hist, bins = np.histogram(lr_img_2x.flatten(),density=True)
+        # cumhist = np.cumsum(hist)
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         """
         经过cv2.resize处理，dtype为浮点数
@@ -649,6 +686,7 @@ def bi_mat_upsampling_x2_3d():
         # 保存sr文件
         io.savemat(os.path.join(sr_dir, filename), {'f1' : sr_img_2x})
 
+# mat文件隔点下采样
 def mat_downsampling_x2_every_other_point():
     """
     间隔取点
@@ -715,7 +753,8 @@ def mat_downsampling_x2_every_other_point():
             lr_img_2x.astype(np.float64)
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout': lr_img_2x})
-
+# 修改：添加噪声
+# 设置多次隔点取样，搭配bicubic上采样
 def mat_downsampling_x2_3d_every_other_point():
     """
     间隔取点
@@ -756,16 +795,28 @@ def mat_downsampling_x2_3d_every_other_point():
         print(f"downsample before : {shape}")
         lr_img_2x = np.zeros((shape[0] // 2, shape[1] // 2, shape[2]//2))
         # downsampling
-        for ih in range(0, shape[0], 2):
-            for iw in range(0, shape[1], 2):
-                for idepth in range(0, shape[2], 2):
-                    lr_img_2x[ih//2, iw//2, idepth//2] = hr_img[ih, iw, idepth]
-                    # if args.random and random.random() < 0.5:
-                    #     if random.random() < 0.5:
-                    #         lr_img_2x[ih // 2, iw // 2, idepth // 2] += random.random() * args.value
-                    #     else:
-                    #         lr_img_2x[ih // 2, iw // 2, idepth // 2] -= random.random() * args.value
-
+        if args.num_of_other == 0 or args.num_of_other == 1:
+            for ih in range(0, shape[0], 2):
+                for iw in range(0, shape[1], 2):
+                    for idepth in range(0, shape[2], 2):
+                        lr_img_2x[ih//2, iw//2, idepth//2] = hr_img[ih, iw, idepth]
+        else:
+            temp_hr = hr_img
+            temp_lr = np.zeros((shape[0] // 2, shape[1] // 2, shape[2] // 2))
+            for idx in range(args.num_of_other-1):
+                print(f'repeat down and up sampling: {idx}')
+                # 隔点下采样temp_hr
+                for ih in range(0, shape[0], 2):
+                    for iw in range(0, shape[1], 2):
+                        for idepth in range(0, shape[2], 2):
+                            temp_lr[ih // 2, iw // 2, idepth // 2] = temp_hr[ih, iw, idepth]
+                # bicubic上采样temp_lr
+                temp_hr = zoom(temp_lr, (2, 2, 2), order=3)
+            # 隔点下采样temp_hr，获取最终的lr_img_2x
+            for ih in range(0, shape[0], 2):
+                for iw in range(0, shape[1], 2):
+                    for idepth in range(0, shape[2], 2):
+                        lr_img_2x[ih // 2, iw // 2, idepth // 2] = temp_hr[ih, iw, idepth]
         # 添加噪声
         if args.noise:
             lr_img_2x = add_noise(lr_img_2x)
@@ -781,6 +832,7 @@ def mat_downsampling_x2_3d_every_other_point():
         # 保存lr文件
         io.savemat(os.path.join(lr_dir, filename), {'imgout': lr_img_2x})
 
+# mat文件（USCT数据转OA-breast数据）上下采样
 def bi_mat_to_oabreast_downsampling_x2_3d():
     print("\nbi_mat_to_oabreast_downsampling_x2_3d")
     hr_image_dir = os.path.join(args.data_dir, 'HR')
@@ -809,7 +861,7 @@ def bi_mat_to_oabreast_downsampling_x2_3d():
         3 : 双三次插值
         """
         lr_img = zoom(hr_img, (0.5, 0.5, 0.5), order=3)
-        lr_img =quantize(lr_img, 1000)
+        lr_img =quantize(lr_img, 4)
         # after shape
         print(lr_img.shape)
         # 保存
@@ -839,7 +891,7 @@ def bi_mat_to_oabreast_upsampling_x2_3d():
         print(lr_img.shape)
         # upsample
         sr_img = zoom(lr_img, (2, 2, 2), order=3)
-        sr_img = quantize(sr_img, 1000)
+        sr_img = quantize(sr_img, 4)
         # after shape
         print(sr_img.shape)
         # save
@@ -876,6 +928,14 @@ if __name__ == '__main__':
     #         bi_dat_downsampling_x2()
     #         bi_dat_upsampling_x2()
 
+    path = r'D:\workspace\dataset\OABreast\dat2mat\clipping\pixel_translation'
+    for foldername in os.listdir(path):
+        args.data_dir = os.path.join(path, foldername)
+        args.mat_field = 'img'
+        args.data_range = 4
+        bi_mat_downsampling_x2()
+        bi_mat_upsampling_x2()
+
     # # oabreast 3d
     # # 只需要提供文件夹路径
     # args.data_dir = r'D:\workspace\dataset\OABreast\clipping\pixel_translation\downing\temp'
@@ -901,12 +961,21 @@ if __name__ == '__main__':
     # usct to oabreast 3d
     # 提供文件夹路径
 
-    args.noise = True
-    args.noise_level = 4
-    args.data_dir = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_4'
-    # bi_mat_to_oabreast_downsampling_x2_3d()
-    mat_downsampling_x2_3d_every_other_point()
-    bi_mat_upsampling_x2_3d()
+    # nums = [5]
+    # for args.num_of_other in nums:
+    #     args.data_dir = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{args.num_of_other}'
+    #     # args.data_dir = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\every_other_points_3d_float_{args.num_of_other}'
+    #     mat_downsampling_x2_3d_every_other_point()
+    #     bi_mat_upsampling_x2_3d()
 
+    # args.num_of_other = 8
+    # args.data_dir = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{args.num_of_other}'
+    # # args.data_dir = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\every_other_points_3d_float_{args.num_of_other}'
+    # mat_downsampling_x2_3d_every_other_point()
+    # bi_mat_upsampling_x2_3d()
+
+    # args.data_dir = r'/root/autodl-tmp/dataset/USCT_3d/3d_to_oabreast'
+    # # bi_mat_to_oabreast_downsampling_x2_3d()
+    # bi_mat_to_oabreast_upsampling_x2_3d()
 
 

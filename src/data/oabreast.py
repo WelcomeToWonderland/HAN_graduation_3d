@@ -4,6 +4,7 @@ import numpy as np
 from data import common
 import random
 from src.utility import get_3d
+from scipy import io
 
 class OABreast(data.Dataset):
     # 函数组-1
@@ -72,7 +73,10 @@ class OABreast(data.Dataset):
         scale_dir = f'X{self.scale[0]}'
         self.dir_lr = os.path.join(dir_data, self.name, 'LR',scale_dir)
         self.dir_hr = os.path.join(dir_data, self.name, 'HR')
-        self.ext = '.DAT'
+        if self.args.dat:
+            self.ext = '.DAT'
+        else:
+            self.ext = '.mat'
 
     def _scan(self):
         '''
@@ -91,13 +95,21 @@ class OABreast(data.Dataset):
         """
         for entry in os.scandir(self.dir_hr):
             filename = os.path.splitext(entry.name)[0]
-            list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
-            list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
+            if self.args.dat:
+                list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
+                list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
+            else:
+                file = io.loadmat(os.path.join(self.dir_hr, filename + self.ext))
+                list_hr = file['img']
         for entry in os.scandir(self.dir_lr):
             filename = os.path.splitext(entry.name)[0]
             for si, s in enumerate(self.scale):
-                list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
-                list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
+                if self.args.dat:
+                    list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
+                    list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
+                else:
+                    file = io.loadmat(os.path.join(self.dir_lr, filename + self.ext))
+                    list_lr[si] = file['img']
 
         return list_hr, list_lr
 

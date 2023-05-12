@@ -8,6 +8,14 @@ import matplotlib.pyplot as plt
 from src.utility import get_3d
 import os
 from script.common import delete_folder
+import argparse
+# parse args
+parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
+parser.add_argument('--img_type', type=str, default=r'HR',
+                    help='')
+parser.add_argument('--dimension', type=int, default=2,
+                    help='')
+args = parser.parse_args()
 
 def matplot_3d(path, savename):
     if path.endswith('.mat'):
@@ -37,44 +45,20 @@ def matplot_3d(path, savename):
     # 关闭
     plt.close()
 
-# def matplot_2d(path, savename):
-#     if path.endswith('.mat'):
-#         file = io.loadmat(path)
-#         data = file['f1']
-#     elif path.endswith('.DAT'):
-#         filename = os.path.basename(path)
-#         basename, _ = os.path.splitext(filename)
-#         x, y, z = get_3d(basename)
-#         data = np.fromfile(path)
-#         data = data.reshape(x, y, z)
-#     # 创建一个 3D 图形
-#     fig = plt.figure()
-#     ax = fig.add_subplot(111, projection='3d')
-#     # 绘制 3D 点图
-#     shape = data.shape
-#     x, y, z = np.indices((shape[0], shape[1], shape[2]))
-#     ax.scatter(x, y, z, c=data.flatten())
-#     # ax.scatter3D(x, y, z, c=data.flatten())
-#     # 展示
-#     # plt.show()
-#     # 保存文件
-#     os.makedirs(os.path.join('.', 'USCT_3d'), exist_ok=True)
-#     path_save = os.path.join('.','USCT_3d', savename)
-#     print(f"matplot path_save : {path_save}")
-#     plt.savefig(path_save, dpi=600)
-#     # 关闭
-#     plt.close()
-
 def matplot_2d_imshow(path, savefolder, savename):
     # 加载数据
     if path.endswith('.mat'):
         file = io.loadmat(path)
-        data = file['f1']
+        if args.img_type=='LR':
+            data = file['imgout']
+        else:
+            data = file['f1']
         # data = file['imgout']
     elif path.endswith('.DAT'):
         basename, _ = os.path.splitext(savename)
         x, y, z = get_3d(basename)
-        # x, y, z = x//2, y//2, z
+        if args.img_type=='LR' and args.img_type == 2:
+            x, y, z = x//2, y//2, z
         data = np.fromfile(path, dtype=np.uint8)
         data = data.reshape(x, y, z)
     # 建立输出保存文件夹
@@ -132,26 +116,54 @@ def matplot_2d_imshow(path, savefolder, savename):
                 plt.savefig(path_save, dpi=600)
                 plt.close()
 
-
-
-
-
 if __name__ == '__main__':
 
     filenames = ['20220511T153240.mat', '20220517T112745.mat',
                  '50525.mat']
 
-    # 初始换：删除之前文件夹
-    savefolder = f'USCT_3d_SR_HAN_other_noise_3_true'
-    delete_folder(os.path.join('..', 'script_results', savefolder))
+    # algorithm = 'bicubic'
+    # args.img_type = 'SR'
+    # args.dimension = 3
+    # suffix = 'other_low_1'
+    # # lr = 5
+    # # 初始化：删除之前文件夹
+    # # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_bn_lr_{lr}'
+    # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_{suffix}'
+    # # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}'
+    # delete_folder(os.path.join('..', 'script_results', savefolder))
+    # # 拼接文件path
+    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low\SRSR'
+    # filename = '20220517T112745.mat'
+    # # filename = '20220517T112745_x2_SR.mat'
+    # path = os.path.join(path_original, filename)
+    # # 构建图片名
+    # basename, _ = os.path.splitext(filename)
+    # # savename = basename + '.png'
+    # savename = '20220517T112745' + '.png'
+    # # 调用函数
+    # matplot_2d_imshow(path, savefolder, savename)
 
-    path_original = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other_noise_3_true/results-USCT_3d_test'
-    filename = '20220517T112745_x2_SR.mat'
-    path = os.path.join(path_original, filename)
-    basename, _ = os.path.splitext(filename)
-    # savename = basename + '.png'
-    savename = '20220517T112745' + '.png'
-    matplot_2d_imshow(path, savefolder, savename)
+    nums = [1, 3, 7, 10]
+    for num in nums:
+        algorithm = 'HAN'
+        args.img_type = 'SR'
+        args.dimension = 3
+
+        # 初始化：删除之前文件夹
+        savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_bn_lr_{num}_other'
+        # savefolder = f'USCT_3d_SR_HAN_other_low_{num}'
+        delete_folder(os.path.join('..', 'script_results', savefolder))
+
+        # path_original = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{num}\LR\X2'
+        # filename = '20220517T112745.mat'
+        path_original = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_other_lr_{num}/results-USCT_3d_test'
+        filename = '20220517T112745_x2_SR.mat'
+
+        path = os.path.join(path_original, filename)
+        basename, _ = os.path.splitext(filename)
+        # savename = basename + '.png'
+        savename = '20220517T112745' + '.png'
+        matplot_2d_imshow(path, savefolder, savename)
 
 
     # levels = [0.1, 2, 3, 4, 5]
@@ -166,22 +178,6 @@ if __name__ == '__main__':
     #         basename, _ = os.path.splitext(filename)
     #         savename = basename + '.png'
     #         matplot_2d_imshow(path, savefolder, savename)
-
-
-
-    # # reset
-    # savefolder = 'USCT_2d_HR_20220511T153240'
-    # delete_folder(os.path.join('..', 'script_results', savefolder))
-    # # 拼接文件path
-    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_2d_float\20220511T153240\HR'
-    # filename = '20220511T153240.mat'
-    # path = os.path.join(path_original, filename)
-    # # 构建图片名
-    # # basename, _ = os.path.splitext(filename)
-    # # savename = basename + '.png'
-    # savename = '20220511T153240' + '.png'
-    # # 调用函数
-    # matplot_2d_imshow(path, savefolder, savename)
 
 
     # filenames = ['20220510T153337.mat', '20220511T153240.mat', '20220517T112745.mat',

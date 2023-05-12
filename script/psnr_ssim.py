@@ -528,10 +528,29 @@ if __name__ == '__main__':
     # psnr_ssim_mat_3d()
 
     # delete_folder(r'D:\workspace\HAN_for_3d\script_results\psnr_ssim_logs')
+    # args.pixel_range = 1000
+    # levels = [3, 4, 5]
+    # for level in levels:
+    #     args.dataset = f'usct_3d_bn_lr_5_other_noise_{level}'
+    #     args.sr_path = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other_noise_{level}/results-USCT_3d_test'
+    #     args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_noise_3/USCT_3d_test/HR'
+    #     psnr_ssim_mat_3d()
+
+    # args.pixel_range = 1000
+    # nums = [1, 10]
+    # for num in nums:
+    #     # args.dataset = f'usct_3d_float_other_low_{num}'
+    #     # args.sr_path = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{num}\SRSR'
+    #     # args.hr_path = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{num}\HRHR'
+    #     # args.sr_path = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\every_other_points_3d_float_{num}\SRSR'
+    #     # args.hr_path = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\every_other_points_3d_float_{num}\HRHR'
+    #     args.dataset = f'usct_3d_bn_other_lr_5_adamw_{num}'
+    #     args.sr_path = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_other_lr_5_adamw_{num}/results-USCT_3d_test'
+    #     args.hr_path = rf'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_low_8/USCT_3d_test/HR'
+    #     psnr_ssim_mat_3d()
+
     args.pixel_range = 1000
-    levels = [3, 4, 5]
-    for level in levels:
-        args.dataset = f'usct_3d_bn_lr_5_other_noise_{level}'
-        args.sr_path = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_lr_5_other_noise_{level}/results-USCT_3d_test'
-        args.hr_path = r'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_noise_3/USCT_3d_test/HR'
-        psnr_ssim_mat_3d()
+    args.dataset = f'usct_3d_bn_lr_5_false_other'
+    args.sr_path = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/HANx2_usct_3d_bn_lr_5_false_other/results-USCT_3d_test'
+    args.hr_path = rf'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_low_8/USCT_3d_test/HR'
+    psnr_ssim_mat_3d()
