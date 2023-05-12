@@ -151,11 +151,6 @@ class Trainer():
                     #     else:
                     #         sr_dat = np.zeros((nx, ny, nz))
 
-                # psnr、ssim数据记录
-                ssim_mean = 0
-                # 计数
-                num = 0
-                # 从dataset中，获取图像
                 for lr, hr, filename in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
                     sr = self.model(lr, idx_scale)
@@ -188,40 +183,29 @@ class Trainer():
                     """
                     注意“坐标”
                     """
-                    # self.ckp.log[-1, idx_data, idx_scale] += utility.calc_psnr(
-                    #     sr, hr, scale, self.args.rgb_range, dataset=d
-                    # )
-
-                    #tensorboard
-                    # sr = sr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
-                    # hr = hr.cpu().numpy()[0, 0, :, :].astype(np.uint8)
-                    # ssim = structural_similarity(hr, sr)
-                    # print(f"ssim: {ssim}")
-                    # ssim_mean += ssim
-                    # self.ckp.writer.add_scalar(r'ssim', ssim.item(), (epoch+1)*len(d) + num)
-                # tensorboard
-                # ssim_mean /= len(d)
-                # self.ckp.writer.add_scalar(r'ssim_mean', ssim_mean.item(), epoch + 1)
+                    self.ckp.log[-1, idx_data, idx_scale] += utility.calc_psnr(
+                        sr, hr, scale, self.args.rgb_range, dataset=d
+                    )
                 if self.args.save_results:
                     if self.args.is_2d:
                         self.ckp.save_results_2d(d, sr_dat, scale)
-                # self.ckp.log[-1, idx_data, idx_scale] /= len(d)
+                self.ckp.log[-1, idx_data, idx_scale] /= len(d)
                 """
                 best
                 决定是否保存model参数
                 max(0) 沿着第一个维度，寻找最大值
                 返回最大值，以及最大值索引(索引从0开始计数)
                 """
-                # best = self.ckp.log.max(0)
-                # self.ckp.write_log(
-                #     '[{} x{}]\tPSNR: {:.3f} (Best: {:.3f} @epoch {})'.format(
-                #         d.dataset.name,
-                #         scale,
-                #         self.ckp.log[-1, idx_data, idx_scale],
-                #         best[0][idx_data, idx_scale],
-                #         best[1][idx_data, idx_scale]+1
-                #     )
-                # )
+                best = self.ckp.log.max(0)
+                self.ckp.write_log(
+                    '[{} x{}]\tPSNR: {:.3f} (Best: {:.3f} @epoch {})'.format(
+                        d.dataset.name,
+                        scale,
+                        self.ckp.log[-1, idx_data, idx_scale],
+                        best[0][idx_data, idx_scale],
+                        best[1][idx_data, idx_scale]+1
+                    )
+                )
 
         self.ckp.write_log('Forward: {:.2f}s\n'.format(timer_test.toc()))
         self.ckp.write_log('Saving...')
