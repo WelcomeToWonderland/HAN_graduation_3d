@@ -116,7 +116,7 @@ class Trainer():
         torch.set_grad_enabled(False)
 
         """
-        epoch 
+        epoch
         经过trian后，epoch+1
         现在获取的epoch，已经是本轮epoch的实际数值，不需要+1
         """
@@ -153,12 +153,50 @@ class Trainer():
 
                 for lr, hr, filename in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
+
+                    # print(f"idx : {filename}")
+                    # # lr
+                    # temp = lr.cpu().numpy()
+                    # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+                    # cumhist = np.cumsum(hist)
+                    # print('\nlr')
+                    # print(f"hist : {hist}")
+                    # print(f"cumhist : {cumhist}")
+                    # print(f"bins : {bins}")
+
+                    # # hr
+                    # temp = hr.cpu().numpy()
+                    # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+                    # cumhist = np.cumsum(hist)
+                    # print('hr')
+                    # print(f"hist : {hist}")
+                    # print(f"cumhist : {cumhist}")
+                    # print(f"bins : {bins}")
+
+                    # sr before quantizing
                     sr = self.model(lr, idx_scale)
+
+                    # temp = sr.cpu().numpy()
+                    # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+                    # cumhist = np.cumsum(hist)
+                    # print('sr before quantizing')
+                    # print(f"hist : {hist}")
+                    # print(f"cumhist : {cumhist}")
+                    # print(f"bins : {bins}")
+
                     """
                     将连续数据，离散化到rgb_range的范围，因此可以进行存储
                     """
+                    # sr after quantizing
                     sr = utility.quantize(sr, self.args.rgb_range)
 
+                    # temp = sr.cpu().numpy()
+                    # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+                    # cumhist = np.cumsum(hist)
+                    # print('sr before quantizing')
+                    # print(f"hist : {hist}")
+                    # print(f"cumhist : {cumhist}")
+                    # print(f"bins : {bins}")
                     """
                     为什么是filename[0]，而不是filename
                     dataset的__getitem__函数，返回的是字符串，而不是列表

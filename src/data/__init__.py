@@ -88,10 +88,10 @@ class Data:
                     m = import_module('data.oabreast')
                 testset = getattr(m, 'OABreast')(args, train=False, name=d)
             elif d in ['20220510T153337', '20220608T172601', '20220809T140229',
-                                 '20220819T162347', '20221114T153716', '20221116T164200',
-                                 '20220511T153240', '20220517T112745', '20220525T153940',
-                                 '20220526T181025',
-                                 '50525', '52748']:
+                       '20220819T162347', '20221114T153716', '20221116T164200',
+                       '20220511T153240', '20220517T112745', '20220525T153940',
+                       '20220526T181025',
+                       '50525', '52748']:
                 m = import_module('data.usct')
                 testset = getattr(m, 'USCT')(args, train=False, name=d)
             elif d in ['USCT_3d_train', 'USCT_3d_test', 'USCT_3d_to_oabreast_train', 'USCT_3d_to_oabreast_test']:

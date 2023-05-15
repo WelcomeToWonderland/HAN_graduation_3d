@@ -26,8 +26,10 @@ class OABreast(data.Dataset):
 
         self._set_filesystem(args.dir_data)
 
+        # 数据获取正常
         list_hr, list_lr = self._scan()
         self.images_hr, self.images_lr = list_hr, list_lr
+
 
         """
         self.repeat
@@ -99,8 +101,11 @@ class OABreast(data.Dataset):
                 list_hr = np.fromfile(os.path.join(self.dir_hr, filename + self.ext), dtype=np.uint8)
                 list_hr = list_hr.reshape(self.nx, self.ny, self.nz)
             else:
+                # 数据获取正常
                 file = io.loadmat(os.path.join(self.dir_hr, filename + self.ext))
                 list_hr = file['img']
+
+
         for entry in os.scandir(self.dir_lr):
             filename = os.path.splitext(entry.name)[0]
             for si, s in enumerate(self.scale):
@@ -108,8 +113,10 @@ class OABreast(data.Dataset):
                     list_lr[si] = np.fromfile(os.path.join(self.dir_lr, filename + self.ext), dtype=np.uint8)
                     list_lr[si] = list_lr[si].reshape(int(self.nx / s), int(self.ny / s), self.nz)
                 else:
+                    # 数据获取正常
                     file = io.loadmat(os.path.join(self.dir_lr, filename + self.ext))
                     list_lr[si] = file['img']
+
 
         return list_hr, list_lr
 
@@ -121,9 +128,78 @@ class OABreast(data.Dataset):
         :return:
         '''
         lr, hr = self._load_file(idx)
+
+        # 数据分布检测
+        # print('\ngetitem')
+        # temp = lr
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        # temp = hr
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+
         pair = self.get_patch(lr, hr)
+
+        # print('\npatch')
+        # temp = pair[0]
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        # temp = pair[1]
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+
         pair = common.set_channel(*pair, n_channels=self.args.n_colors)
+
+        # print('\nset_channel')
+        # temp = pair[0]
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        # temp = pair[1]
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+
         pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range)
+
+        # print('\nnp2Tensor')
+        # temp = pair[0]
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        # temp = pair[1]
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+
         return pair_t[0], pair_t[1], idx
 
     def _load_file(self, idx):
@@ -133,9 +209,30 @@ class OABreast(data.Dataset):
         :param idx:
         :return:
         '''
+        # 数据获取无误
         idx = self._get_index(idx)
         hr = self.images_hr[:, :, idx]
         lr = self.images_lr[self.idx_scale][:, :, idx]
+
+        # hr = self.images_hr[:, :, 60]
+        # lr = self.images_lr[self.idx_scale][:, :, 60]
+        # idx = 60
+
+        # print(f'\nload_file, idx:{60}')
+        # temp = lr
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nlr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
+        # temp = hr
+        # hist, bins = np.histogram(temp.flatten(), bins=range(6), density=True)
+        # cumhist = np.cumsum(hist)
+        # print('\nhr')
+        # print(f"hist : {hist}")
+        # print(f"cumhist : {cumhist}")
+        # print(f"bins : {bins}")
 
         return lr, hr
 
