@@ -93,7 +93,7 @@ resume
 python main.py --bn --load div2k_urban100_bn --resume -1 --n_GPUs 1 --epoch 250 --template HAN --scale 2 --batch_size 8 --print_every 10 --dir_data /root/autodl-tmp/dataset --data_train DIV2K --data_test Urban100 --ext img --save_results
 
 oabreast dat2mat
-python main.py --reset --save oabreast_dat2mat_new_start  --lr 1e-4 --rgb_range 4 --n_colors 1 --is_2d  --epoch 250 --template HAN --scale 2 --batch_size 8 --print_every 10 --dir_data /workspace/datasets/OA-breast_correct --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test --ext img --save_results --n_GPUs 1
+python main.py --reset --save oabreast_dat2mat_new_start  --lr 1e-4 --rgb_range 4 --n_colors 1 --is_2d  --epoch 250 --template HAN --scale 2 --batch_size 8 --print_every 10 --dir_data /workspace/datasets/OA-breast_correct --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test_remove_zero --ext img --save_results --n_GPUs 1
 
 
 apt-get
