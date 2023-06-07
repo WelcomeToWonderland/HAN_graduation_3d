@@ -117,10 +117,10 @@ class Upsampler_3d(nn.Sequential):
         """
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
-                # m.append(conv(n_feats, 8 * n_feats, 3, bias))
-                # m.append(nn.PixelShuffle3d(2))
-                m.append(conv(n_feats, n_feats, 3, bias))
-                m.append(nn.Upsample(scale_factor=2))
+                m.append(conv(n_feats, 8 * n_feats, 3, bias))
+                m.append(nn.PixelShuffle3d(2))
+                # m.append(conv(n_feats, n_feats, 3, bias))
+                # m.append(nn.Upsample(scale_factor=2))
         elif scale == 3:
             # m.append(conv(n_feats, 27 * n_feats, 3, bias))
             # m.append(nn.PixelShuffle3d(3))
