@@ -2,7 +2,7 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from src.PixelShuffle3D import PixelShuffle3D
 
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(
@@ -118,7 +118,7 @@ class Upsampler_3d(nn.Sequential):
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
                 m.append(conv(n_feats, 8 * n_feats, 3, bias))
-                m.append(nn.PixelShuffle3d(2))
+                m.append(PixelShuffle3D(2))
                 # m.append(conv(n_feats, n_feats, 3, bias))
                 # m.append(nn.Upsample(scale_factor=2))
         elif scale == 3:
