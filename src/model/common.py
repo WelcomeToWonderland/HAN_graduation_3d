@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from src.PixelShuffle3D import PixelShuffle3D
 
+
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(
         in_channels, out_channels, kernel_size,
@@ -13,6 +14,24 @@ def default_conv_3d(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv3d(
         in_channels, out_channels, kernel_size,
         padding=(kernel_size//2), bias=bias)
+
+def deconv3d_2x(in_channels, out_channels):
+    kernel_size = 4
+    stride = 2
+    padding = 1
+    output_padding = 0
+    return nn.ConvTranspose3d(in_channels, out_channels,
+                              kernel_size, stride, padding, output_padding)
+
+
+class Interpolate_trilinear(nn.Module):
+    def __init__(self, scale_factor):
+        super(Interpolate_trilinear, self).__init__()
+        self.scale_factor = scale_factor
+
+    def forward(self, input):
+        output = nn.functional.interpolate(input, scale_factor=self.scale_factor, mode='trilinear')
+        return output
 
 class MeanShift(nn.Conv2d):
     def __init__(
@@ -119,8 +138,13 @@ class Upsampler_3d(nn.Sequential):
             for _ in range(int(math.log(scale, 2))):
                 m.append(conv(n_feats, 8 * n_feats, 3, bias))
                 m.append(PixelShuffle3D(2))
+
                 # m.append(conv(n_feats, n_feats, 3, bias))
                 # m.append(nn.Upsample(scale_factor=2))
+
+                # m.append(deconv3d)
+
+                # m.append(Interpolate_trilinear(2))
         elif scale == 3:
             # m.append(conv(n_feats, 27 * n_feats, 3, bias))
             # m.append(nn.PixelShuffle3d(3))

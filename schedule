@@ -62,6 +62,8 @@ new start
 python main.py --bn --lr 5.0e-5 --save HAN_usct_3d_bn_pixelshuffle_other_lr_5 --resume 0  --epochs 250 --dir_data /workspace/datasets/USCT_3d/bicubic_3d_float_other_low --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
 resume
 python main.py --bn --lr 5.0e-5 --load HAN_usct_3d_bn_pixelshuffle_other_lr_5 --resume -1 --epochs 250 --dir_data /workspace/datasets/USCT_3d/bicubic_3d_float_other_low --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
+generate best result using model_best
+python main.py --test_only --bn --save HAN_usct_3d_bn_pixelshuffle_other_lr_5_best_result --resume 0 --pre_train /workspace/projects/HAN_3d_48078/experiment/HAN_usct_3d_bn_pixelshuffle_other_lr_5/model/model_best.pt --epochs 1 --dir_data /workspace/datasets/USCT_3d/bicubic_3d_float_other_low --data_train USCT_3d_train --data_test USCT_3d_test --n_GPUs 1 --template HAN --scale 2 --reset --save_results --print_every 1 --patch_size 64 --batch_size 2 --is_3d --rgb_range 1000 --n_colors 1
 
 div2k-urban100
 begin
@@ -70,7 +72,7 @@ resume
 python main.py --bn --load div2k_urban100_bn --resume -1 --n_GPUs 1 --epoch 250 --template HAN --scale 2 --batch_size 8 --print_every 10 --dir_data /root/autodl-tmp/dataset --data_train DIV2K --data_test Urban100 --ext img --save_results
 
 oabreast dat2mat
-python main.py --reset --save oabreast_dat2mat_new_start  --lr 1e-4 --rgb_range 4 --n_colors 1 --is_2d  --epoch 250 --template HAN --scale 2 --batch_size 8 --print_every 10 --dir_data /workspace/datasets/OA-breast_correct --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test_remove_zero --ext img --save_results --n_GPUs 1
+python main.py --save oabreast_dat2mat_new_start  --lr 1e-4 --rgb_range 4 --n_colors 1 --is_2d  --epoch 250 --template HAN --scale 2 --batch_size 8 --print_every 10 --dir_data /workspace/datasets/OA-breast_correct --data_train Neg_07_Left_train+Neg_35_Left+Neg_47_Left --data_test Neg_07_Left_test_remove_zero --ext img --save_results --n_GPUs 1
 
 
 apt-get
