@@ -23,7 +23,6 @@ def deconv3d_2x(in_channels, out_channels):
     return nn.ConvTranspose3d(in_channels, out_channels,
                               kernel_size, stride, padding, output_padding)
 
-
 class Interpolate_trilinear(nn.Module):
     def __init__(self, scale_factor):
         super(Interpolate_trilinear, self).__init__()
@@ -35,12 +34,41 @@ class Interpolate_trilinear(nn.Module):
 
 class MeanShift(nn.Conv2d):
     def __init__(
-        self, rgb_range,
-        rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1.0, 1.0, 1.0), sign=-1):
-
+            self, rgb_range,
+            rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1.0, 1.0, 1.0), sign=-1):
         super(MeanShift, self).__init__(3, 3, kernel_size=1)
         std = torch.Tensor(rgb_std)
+        """
+        eye：创建内容为二维单位矩阵的张量
+        view：在不改变张量中元素个数的情况下，调整张量的形状，不改变原张量，返回新张量
+
+        weight.data：卷积层权重
+        权重矩阵的形状为：(输出通道数, 输入通道数, 卷积核高度, 卷积核宽度)
+        bias.data：卷积层偏置项的数值
+        偏置项的形状为：(输出通道数,) 或者 (输出通道数, 1, 1)（可以使用广播进行匹配）
+
+        torch.eye(3).view(3, 3, 1, 1)和std.view(3, 1, 1, 1)形状不同，但是因为pytoch的广播机制，
+        将后者（构建二维数组，原一维数组为二维数组的第一个元素，在第一维上复制三次，完成广播）自动广播为前者形状，达成除法条件
+
+        从“rgb_range * torch.Tensor(rgb_mean)“可以看出，rgb_mean和rgb_std是真实mean和std与rgb_range的比值
+        """
         self.weight.data = torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)
+        self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean) / std
+        # 无需反向传播更新参数
+        for p in self.parameters():
+            p.requires_grad = False
+
+class MeanShift_3d(nn.Conv3d):
+    """
+    为”三维“且”单通道“的图像数据准备
+    """
+
+    def __init__(
+            self, rgb_range,
+            rgb_mean=(0.4488), rgb_std=(1.0), sign=-1):
+        super(MeanShift_3d, self).__init__(1, 1, kernel_size=1)
+        std = torch.Tensor(rgb_std)
+        self.weight.data = torch.eye(1).view(1, 1, 1, 1, 1) / std.view(1, 1, 1, 1, 1)
         self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean) / std
         for p in self.parameters():
             p.requires_grad = False
