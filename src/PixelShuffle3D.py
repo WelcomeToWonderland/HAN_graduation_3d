@@ -32,37 +32,37 @@ class PixelShuffle3D(nn.Module):
 
         return shuffle_out.view(batch_size, channels, out_depth, out_height, out_width)
 
+if __name__ == '__main__':
+    import torch
+    from time import time
 
-import torch
-from time import time
+    upscale_factor = 2
 
-upscale_factor = 2
+    # cpu
+    # ps = PixelShuffle3D(upscale_factor)
+    # inputData = torch.rand(2, 16 * upscale_factor ** 3, 128, 128, 128)
 
-# cpu
-# ps = PixelShuffle3D(upscale_factor)
-# inputData = torch.rand(2, 16 * upscale_factor ** 3, 128, 128, 128)
+    # gpu
+    ps = PixelShuffle3D(upscale_factor).cuda()
+    inputData = torch.rand(2, 16 * upscale_factor ** 3, 128, 128, 128).cuda()
 
-# gpu
-ps = PixelShuffle3D(upscale_factor).cuda()
-inputData = torch.rand(2, 16 * upscale_factor ** 3, 128, 128, 128).cuda()
+    # 测试模块效率(运行时间)
+    start = time()
+    output = ps(inputData)
 
-# 测试模块效率(运行时间)
-start = time()
-output = ps(inputData)
+    print(time() - start)
+    print(inputData.size(), output.size())
 
-print(time() - start)
-print(inputData.size(), output.size())
+    # cpu四次运行时间
+    # 0.4194648265838623
+    # 0.419353723526001
+    # 0.3946359157562256
+    # 0.3737030029296875
 
-# cpu四次运行时间
-# 0.4194648265838623
-# 0.419353723526001
-# 0.3946359157562256
-# 0.3737030029296875
+    # gpu四次运行时间
+    # 0.003687620162963867
+    # 0.0037784576416015625
+    # 0.0014619827270507812
+    # 0.0014755725860595703
 
-# gpu四次运行时间
-# 0.003687620162963867
-# 0.0037784576416015625
-# 0.0014619827270507812
-# 0.0014755725860595703
-
-# gpu运行在毫秒级别,可以接受
+    # gpu运行在毫秒级别,可以接受
