@@ -1,4 +1,15 @@
-function show_3d(path, folder_save, is_untranslated, is_unclipping, basename, reset, mat_field)
+function show_3d(path, folder_save, basename, mat_field, is_untranslated, is_unclipping, reset)
+% 参数说明
+% 参数1~3：必须参数
+% path：文件路径
+% basename：还用于图片名构成
+% 参数3~4：mat文件参数
+% 参数5~6：dat文件参数
+% 参数7：默认重置保存文件夹
+if nargin<7
+   reset = true; 
+end
+
 % 创建保存文件夹
 dir_root = fullfile('..', 'script_results');
 dir_save = fullfile(dir_root, folder_save);
@@ -72,11 +83,11 @@ for i = 1:3
         end
         savename = strcat(basename, sprintf('_%d_%d.png', uint8(i), uint8(j)));
         path_save = fullfile(dir_save, savename);
-        print = sprintf('path_save: %s', path_save);
-        disp(print);
-        disp(size(temp));
+%         print = sprintf('path_save: %s', path_save);
+%         disp(print);
+%         disp(size(temp));
         imagesc(temp);
-        saveas(gcf, path_save);       
+        saveas(gcf, path_save);
 %         saveas(gca, path_save); 
     end
 end

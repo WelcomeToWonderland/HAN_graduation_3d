@@ -14,6 +14,7 @@ import torch.nn as nn
 from src.utility import get_3d
 from scipy import io
 from script.common import delete_folder
+import shutil
 
 # parse args
 parser = argparse.ArgumentParser(description='Downsize images at 2x using bicubic interpolation')
@@ -28,6 +29,8 @@ parser.add_argument('--dataset', type=str, default=r'',
 parser.add_argument('--algorithm', type=str, default=r'',
                     help='')
 parser.add_argument('--pixel_range', type=int, default=255,
+                    help='')
+parser.add_argument('--mat_field', type=str, default=r'',
                     help='')
 args = parser.parse_args()
 
@@ -275,9 +278,12 @@ def psnr_ssim_dat_3d():
 def psnr_ssim_mat():
     print('\npsnr_ssim_mat')
     dataset = args.dataset
-    now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    # now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     # make dirs
-    log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{dataset}_{now}")
+    # log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{dataset}_{now}")
+    log_dir = os.path.join('.', '../script_results/psnr_ssim_logs', f"{args.algorithm}_{dataset}")
+    if os.path.exists(log_dir):
+        shutil.rmtree(log_dir)
     os.makedirs(log_dir, exist_ok=True)
     print(log_dir)
     # tb
@@ -288,10 +294,11 @@ def psnr_ssim_mat():
     print(args.sr_path)
     print(args.hr_path)
 
+    field = args.mat_field
     data = io.loadmat(args.sr_path)
-    sr_mat = data['f1']
+    sr_mat = data[field]
     data = io.loadmat(args.hr_path)
-    hr_mat = data['f1']
+    hr_mat = data[field]
 
 
     psnr = []
@@ -299,8 +306,8 @@ def psnr_ssim_mat():
     psnr_mean = 0.0
     ssim_mean = 0.0
     for idx in range(hr_mat.shape[2]):
-        psnr_temp = peak_signal_noise_ratio(hr_mat[:, :, idx], sr_mat[:, :, idx], data_range=1.0e3)
-        ssim_temp = structural_similarity(hr_mat[:, :, idx], sr_mat[:, :, idx], data_range=1.0e3, multichannel=False)
+        psnr_temp = peak_signal_noise_ratio(hr_mat[:, :, idx], sr_mat[:, :, idx], data_range=args.pixel_range)
+        ssim_temp = structural_similarity(hr_mat[:, :, idx], sr_mat[:, :, idx], data_range=args.pixel_range, multichannel=False)
         psnr_mean += psnr_temp
         ssim_mean += ssim_temp
         psnr.append(psnr_temp)
@@ -444,6 +451,7 @@ def psnr_ssim_mat_3d():
 if __name__ == '__main__':
     # 上采样算法
     args.algorithm = 'HAN'
+    args.mat_field = 'img'
 
     # png图片
     # datasets = ['Set5', 'Set14', 'Urban100', 'Manga109']
@@ -549,8 +557,8 @@ if __name__ == '__main__':
     #     args.hr_path = rf'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_low_8/USCT_3d_test/HR'
     #     psnr_ssim_mat_3d()
 
-    args.pixel_range = 1000
-    args.dataset = f'usct_3d_bn_lr_5_false_other'
-    args.sr_path = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/HANx2_usct_3d_bn_lr_5_false_other/results-USCT_3d_test'
-    args.hr_path = rf'/root/autodl-tmp/dataset/USCT_3d/bicubic_3d_float_other_low_8/USCT_3d_test/HR'
-    psnr_ssim_mat_3d()
+    args.pixel_range = 4
+    args.dataset = f'OABreast_correst_remove_zero'
+    args.sr_path = rf'D:\workspace\dataset\Neg_07_Left_test_remove_zero_x2_SR.mat'
+    args.hr_path = rf'D:\workspace\dataset\OABreast\dat2mat\clipping\pixel_translation\Neg_07_Left_test_remove_zero\HR\Neg_07_Left_test.mat'
+    psnr_ssim_mat()

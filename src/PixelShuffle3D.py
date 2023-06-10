@@ -3,7 +3,6 @@ import torch.nn as nn
 
 class PixelShuffle3D(nn.Module):
     """
-
     三维PixelShuffle模块
     """
     def __init__(self, upscale_factor):

@@ -46,6 +46,13 @@ def matplot_3d(path, savename):
     plt.close()
 
 def matplot_2d_imshow(path, savefolder, savename):
+    '''
+    使用该函数，还需要关注args.img_type
+    :param path: 使用该函数
+    :param savefolder:
+    :param savename:
+    :return:
+    '''
     # 加载数据
     if path.endswith('.mat'):
         file = io.loadmat(path)
@@ -117,113 +124,53 @@ def matplot_2d_imshow(path, savefolder, savename):
                 plt.close()
 
 if __name__ == '__main__':
-
-    filenames = ['20220511T153240.mat', '20220517T112745.mat',
-                 '50525.mat']
-
-    # algorithm = 'bicubic'
-    # args.img_type = 'SR'
-    # args.dimension = 3
-    # suffix = 'other_low_1'
-    # # lr = 5
-    # # 初始化：删除之前文件夹
-    # # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_bn_lr_{lr}'
-    # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_{suffix}'
-    # # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}'
-    # delete_folder(os.path.join('..', 'script_results', savefolder))
-    # # 拼接文件path
-    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low\SRSR'
-    # filename = '20220517T112745.mat'
-    # # filename = '20220517T112745_x2_SR.mat'
-    # path = os.path.join(path_original, filename)
-    # # 构建图片名
-    # basename, _ = os.path.splitext(filename)
-    # # savename = basename + '.png'
-    # savename = '20220517T112745' + '.png'
-    # # 调用函数
-    # matplot_2d_imshow(path, savefolder, savename)
-
-    nums = [1, 3, 7, 10]
-    for num in nums:
-        algorithm = 'HAN'
-        args.img_type = 'SR'
-        args.dimension = 3
-
-        # 初始化：删除之前文件夹
-        savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_bn_lr_{num}_other'
-        # savefolder = f'USCT_3d_SR_HAN_other_low_{num}'
-        delete_folder(os.path.join('..', 'script_results', savefolder))
-
-        # path_original = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{num}\LR\X2'
-        # filename = '20220517T112745.mat'
-        path_original = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_other_lr_{num}/results-USCT_3d_test'
-        filename = '20220517T112745_x2_SR.mat'
-
-        path = os.path.join(path_original, filename)
-        basename, _ = os.path.splitext(filename)
-        # savename = basename + '.png'
-        savename = '20220517T112745' + '.png'
-        matplot_2d_imshow(path, savefolder, savename)
-
-
-    # levels = [0.1, 2, 3, 4, 5]
-    # for level in levels:
-    #     # 初始换：删除之前文件夹
-    #     savefolder = f'USCT_3d_SR_bicubic_other_noise_{level}'
+    #
+    # filenames = ['20220511T153240.mat', '20220517T112745.mat',
+    #              '50525.mat']
+    #
+    # nums = [1, 3, 7, 10]
+    # for num in nums:
+    #     algorithm = 'HAN'
+    #     args.img_type = 'SR'
+    #     args.dimension = 3
+    #
+    #     # 初始化：删除之前文件夹
+    #     savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_bn_lr_{num}_other'
+    #     # savefolder = f'USCT_3d_SR_HAN_other_low_{num}'
     #     delete_folder(os.path.join('..', 'script_results', savefolder))
     #
-    #     for filename in filenames:
-    #         path_original = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_noise_{level}\SRSR'
-    #         path = os.path.join(path_original, filename)
-    #         basename, _ = os.path.splitext(filename)
-    #         savename = basename + '.png'
-    #         matplot_2d_imshow(path, savefolder, savename)
-
-
-    # filenames = ['20220510T153337.mat', '20220511T153240.mat', '20220517T112745.mat',
-    #              '20220525T153940.mat', '20220526T181025.mat', '20220608T172601.mat',
-    #              '20220809T140229.mat', '20220819T162347.mat', '20221114T153716.mat',
-    #              '20221116T164200.mat',
-    #              '50525.mat', '52748.mat']
+    #     # path_original = rf'D:\workspace\dataset\USCT\clipping\pixel_translation\bicubic_3d_float_other_low_{num}\LR\X2'
+    #     # filename = '20220517T112745.mat'
+    #     path_original = rf'/root/autodl-tmp/project/HAN_for_3d/experiment/usct_3d_bn_other_lr_{num}/results-USCT_3d_test'
+    #     filename = '20220517T112745_x2_SR.mat'
     #
-    # idx = 1
-    #
-    # # 初始换：删除之前文件夹
-    # savefolder = 'USCT_2d_inshow_translation'
-    # delete_folder(os.path.join('..', 'script_results', savefolder))
-    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d\HR'
-    # filename = filenames[idx]
-    # path = os.path.join(path_original, filename)
-    # basename, _ = os.path.splitext(filename)
-    # savename = basename + '.png'
-    # matplot_2d_imshow(path, savefolder, savename)
-    #
-    #
-    # savefolder = 'USCT_2d_inshow_translation_to_oabreast'
-    # delete_folder(os.path.join('..', 'script_results', savefolder))
-    # path_processed = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d_to_oabreast\HR'
-    # filename = filenames[idx]
-    # path = os.path.join(path_processed, filename)
-    # basename, _ = os.path.splitext(filename)
-    # savename = basename + '.png'
-    # matplot_2d_imshow(path, savefolder, savename)
-
-
-
-
-
-    # path_original = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d\HR'
-    # for filename in os.listdir(path_original):
     #     path = os.path.join(path_original, filename)
     #     basename, _ = os.path.splitext(filename)
-    #     savename = basename + '.png'
-    #     savefolder = 'USCT_2d_inshow_translation'
+    #     # savename = basename + '.png'
+    #     savename = '20220517T112745' + '.png'
     #     matplot_2d_imshow(path, savefolder, savename)
-    #
-    # path_processed = r'D:\workspace\dataset\USCT\clipping\pixel_translation\3d_to_oabreast\HR'
-    # for filename in os.listdir(path_processed):
-    #     path = os.path.join(path_processed, filename)
-    #     basename, _ = os.path.splitext(filename)
-    #     savename = basename + '.png'
-    #     savefolder = 'USCT_2d_inshow_translation_to_oabreast'
-    #     matplot_2d_imshow(path, savefolder, savename)
+
+    # USCT切片图像呈现
+    # 单独处理
+    # 文件路径
+    path = r'D:\workspace\dataset\temp_best_result\latest_HAN_usct_3d_bn_pixelshuffle3d_other_low_3_lr_5_L1\20220517T112745_x2_SR.mat'
+    # 拼接保存文件夹名
+    # args.dimension = 3
+    # args.img_type = 'HR'
+    # algorithm = 'HAN'
+    # savefolder = f'USCT_{args.dimension}d_{args.img_type}_{algorithm}_bn_lr_{num}_other'
+    # 初始化：删除之前文件夹
+    args.img_type = 'SR'
+    savefolder = f'latest_HAN_usct_3d_bn_pixelshuffle3d_other_low_3_lr_5_L1'
+    delete_folder(os.path.join('..', 'script_results', savefolder))
+    savename = '20220517T112745.png'
+    matplot_2d_imshow(path, savefolder, savename)
+
+
+    # 批量处理
+
+
+
+
+
+
