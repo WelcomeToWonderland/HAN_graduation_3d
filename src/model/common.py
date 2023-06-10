@@ -65,8 +65,10 @@ class MeanShift_3d(nn.Conv3d):
 
     def __init__(
             self, rgb_range,
-            rgb_mean=(0.4488), rgb_std=(1.0), sign=-1):
+            rgb_mean=0.5048954884899706, rgb_std=1.0, sign=-1):
         super(MeanShift_3d, self).__init__(1, 1, kernel_size=1)
+        rgb_mean = [rgb_mean]
+        rgb_std = [rgb_std]
         std = torch.Tensor(rgb_std)
         self.weight.data = torch.eye(1).view(1, 1, 1, 1, 1) / std.view(1, 1, 1, 1, 1)
         self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean) / std

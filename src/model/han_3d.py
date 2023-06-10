@@ -289,11 +289,11 @@ class HAN(nn.Module):
         self.shift_mean = args.shift_mean
         # RGB mean for USCT
         # all
-        rgb_mean = (0.5048954884899706)
+        rgb_mean = 0.5048954884899706
         # train
-        # rgb_mean = (0.5053030196838038)
+        # rgb_mean = 0.5053030196838038
         # test
-        # rgb_mean = (0.5036818606590872)
+        # rgb_mean = 0.5036818606590872
         rgb_std = (1.0)
         self.sub_mean = common.MeanShift_3d(args.rgb_range, rgb_mean, rgb_std)
         self.add_mean = common.MeanShift_3d(args.rgb_range, rgb_mean, rgb_std, 1)
