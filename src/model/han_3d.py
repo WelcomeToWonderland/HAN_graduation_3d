@@ -286,6 +286,19 @@ class HAN(nn.Module):
         scale = args.scale[0]
         act = nn.ReLU(True)
 
+        self.shift_mean = args.shift_mean
+        # RGB mean for USCT
+        # all
+        rgb_mean = (0.5048954884899706)
+        # train
+        # rgb_mean = (0.5053030196838038)
+        # test
+        # rgb_mean = (0.5036818606590872)
+        rgb_std = (1.0)
+        self.sub_mean = common.MeanShift_3d(args.rgb_range, rgb_mean, rgb_std)
+        self.add_mean = common.MeanShift_3d(args.rgb_range, rgb_mean, rgb_std, 1)
+
+
         # define head module
         modules_head = [conv(args.n_colors, n_feats, kernel_size)]
 
@@ -303,6 +316,7 @@ class HAN(nn.Module):
             conv(n_feats, args.n_colors, kernel_size)]
         # modules_tail = [
         #     common.Upsampler_3d(conv, scale, n_feats, act=False)]
+
 
         self.head = nn.Sequential(*modules_head)
         self.body = nn.Sequential(*modules_body)
@@ -323,6 +337,8 @@ class HAN(nn.Module):
         # self.test = conv(n_feats, args.n_colors, kernel_size)
 
     def forward(self, x):
+        if self.shift_mean:
+            x = self.sub_mean(x)
 
         x = self.head(x)
         res = x
@@ -375,6 +391,9 @@ class HAN(nn.Module):
         res += x
 
         x = self.tail(res)
+
+        if self.shift_mean:
+            x = self.add_mean(x)
 
         return x 
 
